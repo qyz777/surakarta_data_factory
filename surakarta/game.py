@@ -30,7 +30,7 @@ class Game(object):
             is_win, winner = self.__has_winner()
             if is_win:
                 break
-        return self.__boards
+        return self.__boards, winner
 
     def __reset_board(self):
         self.__red = 12
