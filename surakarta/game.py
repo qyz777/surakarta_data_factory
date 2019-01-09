@@ -72,10 +72,20 @@ class Game(object):
         short_b.tag = tag
         short_b.camp = short_camp
         self.__board[can_move.x][can_move.y] = short_b
+        new_board = copy.deepcopy(self.__board)
+        self.__boards.append({
+            "board": self.__zip_board(new_board),
+            "camp": self.__camp,
+            "red_num": self.__red,
+            "blue_num": self.__blue,
+            "chess_num": self.__red + self.__blue,
+            "from_x": tread.x,
+            "from_y": tread.y,
+            "to_x": can_move.x,
+            "to_y": can_move.y
+        })
         # 修改阵营
         self.__camp = -self.__camp
-        new_board = copy.deepcopy(self.__board)
-        self.__boards.append({"player": self.__current_player, "board": new_board})
         self.__current_player = (
             self.__player[0] if self.__current_player == self.__player[1] else self.__player[1]
         )
@@ -85,7 +95,7 @@ class Game(object):
         else:
             self.__last_move = None
 
-    # 1 蓝方赢 -1 红方赢
+    # return 是否胜利 camp
     def __has_winner(self):
         if self.__red <= 0:
             return True, 1
@@ -95,6 +105,14 @@ class Game(object):
 
     def __get_moves(self):
         return self.__play_manager.get_moves(self.__camp, self.__board)
+
+    @staticmethod
+    def __zip_board(board):
+        zip_list = []
+        for i in range(0, 6):
+            for j in range(0, 6):
+                zip_list.append(str(board[i][j].camp))
+        return ",".join(zip_list)
 
     def __debug_print(self):
         for i in range(0, 6):
