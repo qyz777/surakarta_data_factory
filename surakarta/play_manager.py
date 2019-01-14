@@ -25,6 +25,22 @@ class PlayManager(object):
         walk_moves.extend(fly_moves)
         return walk_moves
 
+    def get_game_moves(self, chess, board):
+        self.board = board
+        walk_array = []
+        short_walk = self.__walk_engine(chess.x, chess.y)
+        if len(short_walk) > 0:
+            for wp in short_walk:
+                d = {"from": chess, "to": wp}
+                walk_array.append(d)
+        short_fly = self.__begin_fly(chess.x, chess.y, chess.camp)
+        if len(short_fly) > 0:
+            for f in short_fly:
+                cm = f[-1]
+                d = {"from": chess, "to": cm}
+                walk_array.append(d)
+        return walk_array
+
     @jit
     def create_walk_moves(self, camp):
         walk_array = []

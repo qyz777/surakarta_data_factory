@@ -19,20 +19,18 @@ class Game(object):
         self.__play_manager = PlayManager()
 
     def start_play(self):
-        self.__reset_board()
+        self.reset_board()
         self.__camp = random.choice([-1, 1])
         while True:
             moves = self.__get_moves()
             move = random.choice(moves)
-            self.__do_move(move)
-            if self.__is_debug:
-                self.__debug_print()
-            is_win, winner = self.__has_winner()
+            self.do_move(move)
+            is_win, winner = self.has_winner()
             if is_win:
                 break
         return self.__boards, winner
 
-    def __reset_board(self):
+    def reset_board(self):
         self.__red = 12
         self.__blue = 12
         chess_lists = [[] for i in range(6)]
@@ -54,7 +52,7 @@ class Game(object):
                 chess_lists[i].append(chess)
         self.__board = copy.deepcopy(chess_lists)
 
-    def __do_move(self, info):
+    def do_move(self, info):
         tread = info['from']
         can_move = info['to']
         tag = tread.tag
@@ -94,14 +92,24 @@ class Game(object):
             self.__last_move = info
         else:
             self.__last_move = None
+        if self.__is_debug:
+            self.__debug_print()
 
     # return 是否胜利 camp
-    def __has_winner(self):
+    def has_winner(self):
         if self.__red <= 0:
             return True, 1
         if self.__blue <= 0:
             return True, -1
         return False, 0
+
+    def get_chess_moves(self, tag):
+        chess = None
+        for i in range(0, 6):
+            for j in range(0, 6):
+                if self.__board[i][j].tag == tag:
+                    chess = self.__board[i][j]
+        return self.__play_manager.get_game_moves(chess, self.__board)
 
     def __get_moves(self):
         return self.__play_manager.get_moves(self.__camp, self.__board)
