@@ -11,6 +11,7 @@ class GameController:
         self.window = main_window.MainWindow()
         self.selected_tag = 0
         self.move_list = []
+        self.player = -1  # player的值同 chess.camp 为-1和1
         self.__init_view()
         self.game = game.Game(is_debug=True)
         self.game.reset_board()
@@ -28,8 +29,14 @@ class GameController:
         self.game_view.chess_move_callback = self.__chess_did_move
 
     def __did_click_btn(self, tag):
+        tag = int(tag)
+        # 判断是否轮到当前玩家下棋
+        if self.player == -1 and tag > 12:
+            return
+        if self.player == 1 and tag < 13:
+            return
         # 1. 获得点击棋子所有可下棋位置
-        array = self.game.get_chess_moves(int(tag))
+        array = self.game.get_chess_moves(tag)
         if len(array) == 0:
             return
         frames = []
@@ -38,7 +45,7 @@ class GameController:
             frames.append(self.__get_chess_frame(info["to"].x, info["to"].y))
         # 3. 展示目标位置
         self.game_view.show_targets(frames)
-        self.selected_tag = int(tag)
+        self.selected_tag = tag
         self.move_list = copy.deepcopy(array)
 
     def __did_click_target_btn(self, x, y):
@@ -55,6 +62,8 @@ class GameController:
                     self.game_view.remove_chess(info["to"].tag)
                 # 数据层面移动棋子
                 self.game.do_move(info)
+                # 修改当前player
+                self.player = -self.player
                 break
         # 清理使用过的数据
         self.selected_tag = 0
