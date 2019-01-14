@@ -64,6 +64,7 @@ class GameView(QWidget):
             self.chess_list.append(btn)
 
     def show_targets(self, frames):
+        self.remove_all_targets()
         for frame in frames:
             btn = TargetButton(self)
             btn.setup_frame(frame)
@@ -76,6 +77,14 @@ class GameView(QWidget):
             btn.hide()
             sip.delete(btn)
         self.targets.clear()
+
+    def remove_chess(self, tag):
+        for btn in self.chess_list:
+            if int(btn.text()) == tag:
+                self.chess_list.remove(btn)
+                btn.hide()
+                sip.delete(btn)
+                break
 
     def move_chess(self, chess_tag, to_frame):
         for chess in self.chess_list:

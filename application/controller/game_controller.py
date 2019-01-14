@@ -50,6 +50,9 @@ class GameController:
     def __chess_did_move(self, frame):
         for info in self.move_list:
             if info["to"].x == frame[2] and info["to"].y == frame[3]:
+                if info["to"].camp != 0:
+                    # 吃子的情况需要移除被吃的棋子
+                    self.game_view.remove_chess(info["to"].tag)
                 # 数据层面移动棋子
                 self.game.do_move(info)
                 break
