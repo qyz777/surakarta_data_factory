@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QGridLayout
 from PyQt5.QtGui import *
 import sip
 from application.view.target_button import TargetButton
+from application.view.chess_button import ChessButton
 from abc import ABCMeta, abstractmethod
 
 INTERVAL = 50
@@ -26,40 +27,33 @@ class GameView(QWidget):
         begin_x = INTERVAL * 2
         begin_y = INTERVAL * 2
         for i in range(0, 24):
-            btn = QPushButton(self)
+            btn = ChessButton(self)
             if i < 6:
-                btn.setStyleSheet("background: red;"
-                                  "border-radius: {radius};"
-                                  "color: white".format(radius=CHESS_SIZE / 2))
+                btn.setup_view(True)
                 btn.setGeometry(begin_x + INTERVAL * i - CHESS_SIZE / 2,
                                 begin_y - CHESS_SIZE / 2,
                                 CHESS_SIZE,
                                 CHESS_SIZE)
             elif i < 12:
-                btn.setStyleSheet("background-color: red;"
-                                  "border-radius: {radius};"
-                                  "color: white".format(radius=CHESS_SIZE / 2))
+                btn.setup_view(True)
                 btn.setGeometry(begin_x + INTERVAL * (i - 6) - CHESS_SIZE / 2,
                                 begin_y + INTERVAL - CHESS_SIZE / 2,
                                 CHESS_SIZE,
                                 CHESS_SIZE)
             elif i < 18:
-                btn.setStyleSheet("background-color: blue;"
-                                  "border-radius: {radius};"
-                                  "color: white".format(radius=CHESS_SIZE / 2))
+                btn.setup_view(False)
                 btn.setGeometry(begin_x + INTERVAL * (i - 12) - CHESS_SIZE / 2,
                                 begin_y + INTERVAL * 4 - CHESS_SIZE / 2,
                                 CHESS_SIZE,
                                 CHESS_SIZE)
             else:
-                btn.setStyleSheet("background-color: blue;"
-                                  "border-radius: {radius};"
-                                  "color: white".format(radius=CHESS_SIZE / 2))
+                btn.setup_view(False)
                 btn.setGeometry(begin_x + INTERVAL * (i - 18) - CHESS_SIZE / 2,
                                 begin_y + INTERVAL * 5 - CHESS_SIZE / 2,
                                 CHESS_SIZE,
                                 CHESS_SIZE)
             btn.setText(str(i + 1))
+            btn.tag = i + 1
             btn.clicked.connect(self.__click_btn)
             self.chess_list.append(btn)
 
@@ -80,7 +74,7 @@ class GameView(QWidget):
 
     def remove_chess(self, tag):
         for btn in self.chess_list:
-            if int(btn.text()) == tag:
+            if btn.tag == tag:
                 self.chess_list.remove(btn)
                 btn.hide()
                 sip.delete(btn)
@@ -88,15 +82,14 @@ class GameView(QWidget):
 
     def move_chess(self, chess_tag, to_frame):
         for chess in self.chess_list:
-            if chess_tag == int(chess.text()):
+            if chess_tag == chess.tag:
                 chess.move(to_frame[1] - CHESS_SIZE / 2, to_frame[0] - CHESS_SIZE / 2)
                 # 移动完棋子要回调修改棋盘数据
                 return self.chess_move_callback(to_frame)
 
     @pyqtSlot()
     def __click_btn(self):
-        tag = self.sender().text()
-        return self.click_callback(tag)
+        return self.click_callback(self.sender().tag)
 
     @pyqtSlot()
     def __click_target_btn(self):
