@@ -2,6 +2,7 @@ from application.view import main_window
 from application.view import game_view
 from PyQt5.QtWidgets import QGridLayout
 from surakarta import game
+from ai import ai
 import copy
 
 
@@ -11,10 +12,12 @@ class GameController:
         self.window = main_window.MainWindow()
         self.selected_tag = 0
         self.move_list = []
-        self.player = -1  # player的值同 chess.camp 为-1和1
+        self.__player = 1  # player的值同 chess.camp 为-1和1
         self.__init_view()
         self.game = game.Game(is_debug=True)
         self.game.reset_board()
+        self.__is_ai_mode = False
+        self.ai = ai.AI()
 
     def app_launch(self):
         self.window.show()
@@ -31,9 +34,9 @@ class GameController:
     def __did_click_btn(self, tag):
         tag = int(tag)
         # 判断是否轮到当前玩家下棋
-        if self.player == -1 and tag > 12:
+        if self.__player == -1 and tag > 12:
             return
-        if self.player == 1 and tag < 13:
+        if self.__player == 1 and tag < 13:
             return
         # 1. 获得点击棋子所有可下棋位置
         array = self.game.get_chess_moves(tag)
@@ -63,11 +66,25 @@ class GameController:
                 # 数据层面移动棋子
                 self.game.do_move(info)
                 # 修改当前player
-                self.player = -self.player
+                self.__player = -self.__player
                 break
         # 清理使用过的数据
         self.selected_tag = 0
         self.move_list.clear()
+        self.__ai_go_if_need()
+
+    def __ai_go_if_need(self):
+        if self.__is_ad_go():
+            # 如果是AI模式下需要AI下棋了
+            info = self.ai.search(self.game.chess_num(), self.game.chess_board())
+            tag = self.game.chess_board()[info["from_x"]][info["from_y"]]
+            self.game_view.remove_all_targets()
+            self.game_view.move_chess(tag, self.__get_chess_frame(info["to_x"], info["to_y"]))
+
+    def __is_ad_go(self):
+        if self.__is_ai_mode and self.__player == -1:
+            return True
+        return False
 
     @staticmethod
     def __get_chess_frame(x, y):

@@ -111,6 +111,12 @@ class Game(object):
                     chess = self.__board[i][j]
         return self.__play_manager.get_game_moves(chess, self.__board)
 
+    def chess_num(self):
+        return self.__red + self.__blue
+
+    def chess_board(self):
+        return self.__board
+
     def __get_moves(self):
         return self.__play_manager.get_moves(self.__camp, self.__board)
 
