@@ -7,6 +7,21 @@ class DBHelper(object):
         self.__connect = sqlite3.connect(db_name)
         self.__cursor = self.__connect.cursor()
 
+    def select_max(self, info):
+        table_name = "chess_num_" + info["chess_num"]
+        sql = '''SELECT MAX(prob) FROM `{table_bame}` 
+                WHERE from_x={from_x} 
+                AND from_y={from_y}'''.format(table_name=table_name,
+                                              from_x=info["from_x"],
+                                              from_y=info["from_y"])
+        cursor = self.__connect.execute(sql)
+        data = list(cursor)
+        result = None
+        if len(data) > 0:
+            row = data[0]
+            result = (row["to_x"], row["to_y"])
+        return result
+
     def update_data(self, data):
         for info in data:
             table_name = "chess_num_" + str(info["chess_num"])
