@@ -1,11 +1,10 @@
 from surakarta import game
 from helper import db_helper
 import os
-import gc
-from multiprocessing import Process, Pool
+from multiprocessing import Pool
 
 
-PLAY_COUNT = 3
+PLAY_COUNT = 5
 
 
 def remove_lose_data(data_list, winner_camp):
@@ -27,7 +26,6 @@ def start():
         print("进程:%s 场次:%d" % (os.getpid(), i))
         data, winner = g.start_play()
         db.update_data(remove_lose_data(data, winner))
-        gc.collect()
 
 
 if __name__ == '__main__':
