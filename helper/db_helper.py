@@ -5,6 +5,7 @@ class DBHelper(object):
 
     def __init__(self, db_name):
         self.__connect = sqlite3.connect(db_name)
+        self.__connect.execute("PRAGMA synchronous = OFF")
         self.__cursor = self.__connect.cursor()
 
     def select_go(self, info):

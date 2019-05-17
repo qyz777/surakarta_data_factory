@@ -4,7 +4,7 @@ import os, time
 from multiprocessing import Queue, Process
 
 
-PLAY_COUNT = 2
+PLAY_COUNT = 50
 
 
 def remove_lose_data(data_list, winner_camp):
@@ -24,13 +24,17 @@ def start(q: Queue):
 
 
 def write_into_db(q: Queue):
-    db = db_helper.DBHelper("data.db")
+    if os.path.exists('./data.db'):
+        db = db_helper.DBHelper("data.db")
+    else:
+        db = db_helper.DBHelper("data.db")
+        db.create_tables()
     while True:
         data = q.get()
         s = time.time()
         db.update_data(data)
         e = time.time()
-        print("数量:%d 耗时:%ss" % (len(data), e - s))
+        print("数量:%d 耗时:%.2fs 队列还剩:%d" % (len(data), e - s, q.qsize()))
 
 
 if __name__ == '__main__':

@@ -21,6 +21,7 @@ class Game(object):
     def start_play(self):
         self.reset_board()
         self.__camp = random.choice([-1, 1])
+        self.__boards = []
         while True:
             moves = self.__get_moves()
             move = random.choice(moves)
