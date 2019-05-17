@@ -1,4 +1,5 @@
 import sqlite3
+from sqlite3 import Cursor
 
 
 class DBHelper(object):
@@ -10,13 +11,13 @@ class DBHelper(object):
     def select_go(self, info):
         table_name = "chess_num_" + info["chess_num"]
         where = {"board": info["board"], "camp": -1}
-        data = self.__select(table_name, ["*"], where)
+        data = self.select(table_name, ["*"], where)
         return data
 
     def update_data(self, data):
         for info in data:
             table_name = "chess_num_" + str(info["chess_num"])
-            column = self.__select(
+            column = self.select(
                 table_name,
                 ["id", "prob"],
                 {"board": info["board"], "camp": info["camp"]}
@@ -55,7 +56,7 @@ class DBHelper(object):
         self.__connect.execute(sql)
         self.__connect.commit()
 
-    def __select(self, table, column, where=None):
+    def select(self, table, column, where=None):
         where_str = ""
         if len(where) > 0:
             where_list = []
