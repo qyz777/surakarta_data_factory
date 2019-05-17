@@ -1,5 +1,4 @@
 import sqlite3
-from sqlite3 import Cursor
 
 
 class DBHelper(object):
@@ -54,7 +53,6 @@ class DBHelper(object):
         sql = '''INSERT INTO {table} ({keys}) VALUES ({values})
         '''.format(table=table, keys=",".join(keys), values=",".join(values))
         self.__connect.execute(sql)
-        self.__connect.commit()
 
     def select(self, table, column, where=None):
         where_str = ""
@@ -84,4 +82,3 @@ class DBHelper(object):
         sql = '''UPDATE {table} SET {data} {where}
         '''.format(table=table, data=",".join(data_list), where=where_str)
         self.__connect.execute(sql)
-        self.__connect.commit()
