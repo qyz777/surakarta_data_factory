@@ -15,7 +15,6 @@ class Engine(object):
         _, action = self._min_max_search(1)
         self._callback(action)
 
-    # @tail_call_optimized
     def _min_max_search(self, player: int, memo: dict = None, depth: int = 0) -> (int, dict):
         if memo is None:
             memo = {}

@@ -1,22 +1,50 @@
-from excavator import energy
-from excavator import engine
+from excavator.energy import Energy
+from excavator.engine import Engine
+from surakarta.chess import Chess
 import threading
 
 
 class Cockpit(object):
 
-    def __init__(self):
-        self.__energy = energy.Energy()
-
     def search(self, game_info: dict, callback):
-        # info = {"chess_num": chess_num, "board": game_info["board"]}
-        # result = self.__energy.select_go(info)
-        # if len(data_list) == 0:
-        #     # 这里调用α-β剪枝搜索
-        #     e = engine.Engine(game_info)
-        #     return e.start()
-        # return result
-        # 这里调用α-β剪枝搜索
-        e = engine.Engine(game_info, callback)
-        t = threading.Thread(target=e.start)
-        t.start()
+        thread = threading.Thread(target=self._search, args=(game_info, callback))
+        thread.start()
+
+    def _search(self, game_info: dict, callback):
+        energy = Energy()
+        info = {"chess_num": game_info["red_num"] + game_info["blue_num"],
+                "board": self._zip_board(game_info["board"])}
+        result = energy.select_go(info)
+        d = self._setup_chess_from_row(result, game_info["board"])
+        if d is None:
+            # 这里调用α-β剪枝搜索
+            e = Engine(game_info, callback)
+            e.start()
+        else:
+            callback(d)
+
+    @staticmethod
+    def _setup_chess_from_row(row: tuple, board: [[Chess]]) -> dict:
+        if row is None or len(row) == 0:
+            return None
+        from_chess = Chess()
+        from_chess.x = row[6]
+        from_chess.y = row[7]
+        from_chess.tag = board[row[6]][row[7]].tag
+        if from_chess.tag == 0:
+            return None
+        to_chess = Chess()
+        to_chess.x = row[8]
+        to_chess.y = row[9]
+        to_chess.tag = board[row[8]][row[9]].tag
+        if to_chess.tag == 0:
+            return None
+        return {"from": from_chess, "to": to_chess}
+
+    @staticmethod
+    def _zip_board(board: [[Chess]]) -> str:
+        zip_list = []
+        for i in range(0, 6):
+            for j in range(0, 6):
+                zip_list.append(str(board[i][j].camp))
+        return ",".join(zip_list)

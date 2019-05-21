@@ -1,6 +1,5 @@
 import copy
-from surakarta import chess
-
+from surakarta.chess import Chess
 from numba import jit
 
 
@@ -13,7 +12,7 @@ class PlayManager(object):
         self.fly_path = []
 
     # 调用这个获取下棋位置 返回的是字典数组{'from', 'to'} from是棋子 to是下棋的位置 都为chess对象
-    def get_moves(self, camp: int, board: [[chess.Chess]]) -> [dict]:
+    def get_moves(self, camp: int, board: [[Chess]]) -> [dict]:
         if camp == 0:
             raise RuntimeError("Camp must be - 1 or 1!!!")
 
@@ -28,7 +27,7 @@ class PlayManager(object):
         walk_moves.extend(fly_moves)
         return walk_moves
 
-    def get_game_moves(self, chess: chess.Chess, board: [[chess.Chess]]) -> [dict]:
+    def get_game_moves(self, chess: Chess, board: [[Chess]]) -> [dict]:
         self.board = board
         move_list = []
         walk_list = self._walk_engine(chess.x, chess.y)
@@ -42,7 +41,7 @@ class PlayManager(object):
         return move_list
 
     @jit
-    def create_walk_moves(self, camp: int) -> [chess.Chess]:
+    def create_walk_moves(self, camp: int) -> [Chess]:
         move_list = []
         for i in range(0, 6):
             for j in range(0, 6):
@@ -55,7 +54,7 @@ class PlayManager(object):
         return copy.deepcopy(move_list)
 
     @jit
-    def create_fly_moves(self, camp: int) -> [chess.Chess]:
+    def create_fly_moves(self, camp: int) -> [Chess]:
         move_list = []
         for i in range(0, 6):
             for j in range(0, 6):
