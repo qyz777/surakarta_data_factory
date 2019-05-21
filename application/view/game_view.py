@@ -21,9 +21,9 @@ class GameView(QWidget):
         self.chess_move_callback = None
         self.targets = []
         self.chess_list = []
-        self.__init_view()
+        self._init_view()
 
-    def __init_view(self):
+    def _init_view(self):
         begin_x = INTERVAL * 2
         begin_y = INTERVAL * 2
         for i in range(0, 24):
@@ -54,7 +54,7 @@ class GameView(QWidget):
                                 CHESS_SIZE)
             btn.setText(str(i + 1))
             btn.tag = i + 1
-            btn.clicked.connect(self.__click_btn)
+            btn.clicked.connect(self._click_btn)
             self.chess_list.append(btn)
 
     def show_targets(self, frames):
@@ -62,7 +62,7 @@ class GameView(QWidget):
         for frame in frames:
             btn = TargetButton(self)
             btn.setup_frame(frame)
-            btn.clicked.connect(self.__click_target_btn)
+            btn.clicked.connect(self._click_target_btn)
             btn.show()
             self.targets.append(btn)
 
@@ -85,15 +85,18 @@ class GameView(QWidget):
             if chess_tag == chess.tag:
                 chess.move(to_frame[1] - CHESS_SIZE / 2, to_frame[0] - CHESS_SIZE / 2)
                 # 移动完棋子要回调修改棋盘数据
-                return self.chess_move_callback(to_frame)
+                self.chess_move_callback(to_frame)
+                return
 
     @pyqtSlot()
-    def __click_btn(self):
-        return self.click_callback(self.sender().tag)
+    def _click_btn(self):
+        self.click_callback(self.sender().tag)
+        return
 
     @pyqtSlot()
-    def __click_target_btn(self):
-        return self.target_click_callback(self.sender().x, self.sender().y)
+    def _click_target_btn(self):
+        self.target_click_callback(self.sender().x, self.sender().y)
+        return
 
     def paintEvent(self, QPaintEvent):
         painter = QPainter(self)

@@ -8,12 +8,6 @@ class DBHelper(object):
         self.__connect.execute("PRAGMA synchronous = OFF")
         self.__cursor = self.__connect.cursor()
 
-    def select_go(self, info):
-        table_name = "chess_num_" + info["chess_num"]
-        where = {"board": info["board"], "camp": -1}
-        data = self.select(table_name, ["*"], where)
-        return data
-
     def update_data(self, data):
         for info in data:
             table_name = "chess_num_" + str(info["chess_num"])
@@ -23,9 +17,9 @@ class DBHelper(object):
                 {"board": info["board"], "camp": info["camp"]}
             )
             if len(column) > 0:
-                self.__update(table_name, {"prob": int(column[0][1]) + 1}, {"id": int(column[0][0])})
+                self._update(table_name, {"prob": int(column[0][1]) + 1}, {"id": int(column[0][0])})
             else:
-                self.__insert(table_name, info)
+                self._insert(table_name, info)
 
     def create_tables(self):
         for i in range(1, 25):
@@ -45,7 +39,7 @@ class DBHelper(object):
             )'''.format(name=table_name)
             self.__connect.execute(sql)
 
-    def __insert(self, table, data):
+    def _insert(self, table, data):
         keys = []
         values = []
         for key in data:
@@ -69,7 +63,7 @@ class DBHelper(object):
         self.__connect.commit()
         return list(cursor)
 
-    def __update(self, table, data, where=None):
+    def _update(self, table, data, where=None):
         data_list = []
         for key in data:
             data_list.append("{key}='{value}'".format(key=key, value=data[key]))

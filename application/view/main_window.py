@@ -11,10 +11,10 @@ class MainWindow(QWidget):
         super(MainWindow, self).__init__(parent)
         self.setWindowTitle('qyz_surakarta')
         self.resize(SCREEN_WIDTH, SCREEN_HEIGHT)
-        center_x, center_y = self.__get_screen_center()
+        center_x, center_y = self._get_screen_center()
         self.move(center_x, center_y)
 
     @staticmethod
-    def __get_screen_center():
+    def _get_screen_center():
         screen = QDesktopWidget().screenGeometry()
         return (screen.width() - SCREEN_WIDTH) / 2, (screen.height() - SCREEN_HEIGHT) / 2

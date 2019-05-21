@@ -8,9 +8,9 @@ class TargetButton(QPushButton):
         self.x = None
         self.y = None
         self.size = 15
-        self.__init_view()
+        self._init_view()
 
-    def __init_view(self):
+    def _init_view(self):
         self.setStyleSheet("background: white;" 
                            "border-radius: {radius};" 
                            "color: black".format(radius=self.size / 2))
