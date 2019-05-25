@@ -1,10 +1,9 @@
-from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtWidgets import QWidget, QPushButton, QGridLayout
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 import sip
 from application.view.target_button import TargetButton
 from application.view.chess_button import ChessButton
-from abc import ABCMeta, abstractmethod
 
 INTERVAL = 50
 LONG_RADIUS = INTERVAL * 4
@@ -19,43 +18,38 @@ class GameView(QWidget):
         self.click_callback = None
         self.target_click_callback = None
         self.chess_move_callback = None
+        self.game_begin_callback = None
+        self.change_mode_callback = None
         self.targets = []
         self.chess_list = []
+        self._is_ai_first_go = False
         self._init_view()
 
     def _init_view(self):
-        begin_x = INTERVAL * 2
-        begin_y = INTERVAL * 2
-        for i in range(0, 24):
-            btn = ChessButton(self)
-            if i < 6:
-                btn.setup_view(True)
-                btn.setGeometry(begin_x + INTERVAL * i - CHESS_SIZE / 2,
-                                begin_y - CHESS_SIZE / 2,
-                                CHESS_SIZE,
-                                CHESS_SIZE)
-            elif i < 12:
-                btn.setup_view(True)
-                btn.setGeometry(begin_x + INTERVAL * (i - 6) - CHESS_SIZE / 2,
-                                begin_y + INTERVAL - CHESS_SIZE / 2,
-                                CHESS_SIZE,
-                                CHESS_SIZE)
-            elif i < 18:
-                btn.setup_view(False)
-                btn.setGeometry(begin_x + INTERVAL * (i - 12) - CHESS_SIZE / 2,
-                                begin_y + INTERVAL * 4 - CHESS_SIZE / 2,
-                                CHESS_SIZE,
-                                CHESS_SIZE)
-            else:
-                btn.setup_view(False)
-                btn.setGeometry(begin_x + INTERVAL * (i - 18) - CHESS_SIZE / 2,
-                                begin_y + INTERVAL * 5 - CHESS_SIZE / 2,
-                                CHESS_SIZE,
-                                CHESS_SIZE)
-            btn.setText(str(i + 1))
-            btn.tag = i + 1
-            btn.clicked.connect(self._click_btn)
-            self.chess_list.append(btn)
+        self._setup_buttons()
+        self.human_radio = QRadioButton("人人", self)
+        self.human_radio.setGeometry(INTERVAL * 10, 0, 100, 25)
+        self.ai_radio = QRadioButton("人机", self)
+        self.ai_radio.setGeometry(INTERVAL * 10 + 100, 0, 100, 25)
+        mode_button_group = QButtonGroup(self)
+        mode_button_group.addButton(self.human_radio, 1)
+        mode_button_group.addButton(self.ai_radio, 2)
+        mode_button_group.buttonClicked.connect(self._select_mode_radio)
+        self.first_human_radio = QRadioButton("人先手", self)
+        self.first_human_radio.setGeometry(INTERVAL * 10, 35, 100, 25)
+        self.first_human_radio.hide()
+        self.first_ai_radio = QRadioButton("机先手", self)
+        self.first_ai_radio.setGeometry(INTERVAL * 10 + 100, 35, 100, 25)
+        self.first_ai_radio.hide()
+        first_button_group = QButtonGroup(self)
+        first_button_group.addButton(self.first_human_radio, 1)
+        first_button_group.addButton(self.first_ai_radio, 2)
+        first_button_group.buttonClicked.connect(self._select_first_radio)
+        self.begin_button = QPushButton(self)
+        self.begin_button.setStyleSheet("border-radius: 10; background-color: white; color: black")
+        self.begin_button.setText("开始")
+        self.begin_button.setGeometry(INTERVAL * 10, 70, 200, 25)
+        self.begin_button.clicked.connect(self._click_begin_button)
 
     def show_targets(self, frames):
         self.remove_all_targets()
@@ -95,6 +89,66 @@ class GameView(QWidget):
     @pyqtSlot()
     def _click_target_btn(self):
         self.target_click_callback(self.sender().x, self.sender().y)
+
+    @pyqtSlot()
+    def _select_mode_radio(self):
+        if self.sender().checkedId() == 1:
+            self.first_human_radio.hide()
+            self.first_ai_radio.hide()
+            self.change_mode_callback(1)
+        else:
+            self.first_human_radio.show()
+            self.first_ai_radio.show()
+            self.change_mode_callback(2)
+
+    @pyqtSlot()
+    def _click_begin_button(self):
+        self.ai_radio.setEnabled(False)
+        self.human_radio.setEnabled(False)
+        self.first_human_radio.setEnabled(False)
+        self.first_ai_radio.setEnabled(False)
+        self.game_begin_callback(self._is_ai_first_go)
+
+    @pyqtSlot()
+    def _select_first_radio(self):
+        if self.sender().checkedId() == 1:
+            self._is_ai_first_go = False
+        else:
+            self._is_ai_first_go = True
+
+    def _setup_buttons(self):
+        begin_x = INTERVAL * 2
+        begin_y = INTERVAL * 2
+        for i in range(0, 24):
+            btn = ChessButton(self)
+            if i < 6:
+                btn.setup_view(True)
+                btn.setGeometry(begin_x + INTERVAL * i - CHESS_SIZE / 2,
+                                begin_y - CHESS_SIZE / 2,
+                                CHESS_SIZE,
+                                CHESS_SIZE)
+            elif i < 12:
+                btn.setup_view(True)
+                btn.setGeometry(begin_x + INTERVAL * (i - 6) - CHESS_SIZE / 2,
+                                begin_y + INTERVAL - CHESS_SIZE / 2,
+                                CHESS_SIZE,
+                                CHESS_SIZE)
+            elif i < 18:
+                btn.setup_view(False)
+                btn.setGeometry(begin_x + INTERVAL * (i - 12) - CHESS_SIZE / 2,
+                                begin_y + INTERVAL * 4 - CHESS_SIZE / 2,
+                                CHESS_SIZE,
+                                CHESS_SIZE)
+            else:
+                btn.setup_view(False)
+                btn.setGeometry(begin_x + INTERVAL * (i - 18) - CHESS_SIZE / 2,
+                                begin_y + INTERVAL * 5 - CHESS_SIZE / 2,
+                                CHESS_SIZE,
+                                CHESS_SIZE)
+            btn.setText(str(i + 1))
+            btn.tag = i + 1
+            btn.clicked.connect(self._click_btn)
+            self.chess_list.append(btn)
 
     def paintEvent(self, QPaintEvent):
         painter = QPainter(self)

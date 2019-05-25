@@ -18,6 +18,7 @@ class GameController:
         self.game.reset_board()
         self._is_ai_mode = True
         self._excavator = Cockpit()
+        self._is_game_begin = False
 
     def app_launch(self):
         self.window.show()
@@ -30,8 +31,12 @@ class GameController:
         self.game_view.click_callback = self._did_click_btn
         self.game_view.target_click_callback = self._did_click_target_btn
         self.game_view.chess_move_callback = self._chess_did_move
+        self.game_view.game_begin_callback = self._game_begin
+        self.game_view.change_mode_callback = self._change_game_mode
 
     def _did_click_btn(self, tag):
+        if self._is_game_begin is False:
+            return
         tag = int(tag)
         # AI模式下就不让上方可以点击了
         if self._is_ai_mode and tag < 13:
@@ -76,10 +81,28 @@ class GameController:
         self.move_list.clear()
         self._ai_go_if_need()
 
+    def _game_begin(self, is_ai_first):
+        self._is_game_begin = True
+        if is_ai_first:
+            self._player = -1
+            self._ai_go_if_need()
+        else:
+            self._player = 1
+
+    def _change_game_mode(self, mode):
+        self._is_ai_mode = mode == 2
+
     def _ai_go_if_need(self):
         if self._is_ai_go():
             # 如果是AI模式下需要AI下棋了
-            self._excavator.search(self.game.last_board_info, self._ai_go)
+            board_info = self.game.last_board_info
+            if board_info is None:
+                board_info = {
+                    "board": self.game.chess_board,
+                    "red_num": 12,
+                    "blue_num": 12
+                }
+            self._excavator.search(board_info, self._ai_go)
 
     def _ai_go(self, info: dict):
         self.game_view.remove_all_targets()
