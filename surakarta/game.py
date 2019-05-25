@@ -6,7 +6,7 @@ import random
 
 class Game(object):
 
-    def __init__(self, camp: int, is_debug=False, game_info: dict=None):
+    def __init__(self, camp: int, is_debug=False, game_info: dict = None):
         self._is_debug = is_debug
         self._board_record_list = []
         self._game_info_list = []

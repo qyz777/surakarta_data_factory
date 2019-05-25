@@ -6,20 +6,20 @@ from numba import jit
 class PlayManager(object):
 
     def __init__(self):
-        self.board = None
-        self.fly_x = 0
-        self.fly_y = 0
-        self.fly_path = []
+        self._board = None
+        self._fly_x = 0
+        self._fly_y = 0
+        self._fly_path = []
 
     # 调用这个获取下棋位置 返回的是字典数组{'from', 'to'} from是棋子 to是下棋的位置 都为chess对象
     def get_moves(self, camp: int, board: [[Chess]]) -> [dict]:
         if camp == 0:
             raise RuntimeError("Camp must be - 1 or 1!!!")
 
-        self.board = copy.deepcopy(board)
-        self.fly_x = 0
-        self.fly_y = 0
-        self.fly_path = []
+        self._board = copy.deepcopy(board)
+        self._fly_x = 0
+        self._fly_y = 0
+        self._fly_path = []
         fly_moves = self.create_fly_moves(camp)
         if len(fly_moves) > 0:
             return fly_moves
@@ -28,7 +28,7 @@ class PlayManager(object):
         return walk_moves
 
     def get_game_moves(self, chess: Chess, board: [[Chess]]) -> [dict]:
-        self.board = board
+        self._board = board
         move_list = []
         walk_list = self._walk_engine(chess.x, chess.y)
         if len(walk_list) > 0:
@@ -45,7 +45,7 @@ class PlayManager(object):
         move_list = []
         for i in range(0, 6):
             for j in range(0, 6):
-                p = self.board[i][j]
+                p = self._board[i][j]
                 if p.camp == camp:
                     walk_list = self._walk_engine(p.x, p.y)
                     for w in walk_list:
@@ -58,7 +58,7 @@ class PlayManager(object):
         move_list = []
         for i in range(0, 6):
             for j in range(0, 6):
-                p = self.board[i][j]
+                p = self._board[i][j]
                 if p.camp == camp:
                     fly_list = self._begin_fly(p.x, p.y, p.camp)
                     for fly in fly_list:
@@ -68,127 +68,139 @@ class PlayManager(object):
     def _begin_fly(self, x, y, camp):
         finish_fly_path = []
         for i in range(0, 4):
-            self.fly_x = x
-            self.fly_y = y
+            self._fly_x = x
+            self._fly_y = y
             self._fly_engine(x, y, i, camp, False)
-            if self.fly_path is not None and len(self.fly_path) > 0:
-                finish_fly_path.append(copy.deepcopy(self.fly_path))
-                self.fly_path = []
-        return copy.deepcopy(finish_fly_path)
+            if self._fly_path is not None and len(self._fly_path) > 0:
+                finish_fly_path.append(copy.deepcopy(self._fly_path))
+                self._fly_path = []
+        return finish_fly_path
 
+    # 向四个方向走
     def _can_fly(self, orientation):
-        # 向下
+        # 向上
         if orientation == 0:
-            self.fly_x -= 1
-            if self.fly_x < 0:
-                self.fly_x += 1
+            self._fly_x -= 1
+            if self._fly_x < 0:
+                self._fly_x += 1
                 return False
             else:
                 return True
         # 向右
         if orientation == 1:
-            self.fly_y += 1
-            if self.fly_y > 5:
-                self.fly_y -= 1
+            self._fly_y += 1
+            if self._fly_y > 5:
+                self._fly_y -= 1
                 return False
             else:
                 return True
-        # 向上
+        # 向下
         if orientation == 2:
-            self.fly_x += 1
-            if self.fly_x > 5:
-                self.fly_x -= 1
+            self._fly_x += 1
+            if self._fly_x > 5:
+                self._fly_x -= 1
                 return False
             else:
                 return True
         # 向左
         if orientation == 3:
-            self.fly_y -= 1
-            if self.fly_y < 0:
-                self.fly_y += 1
+            self._fly_y -= 1
+            if self._fly_y < 0:
+                self._fly_y += 1
                 return False
             else:
                 return True
-
         return False
 
     def _fly_engine(self, x, y, orientation, camp, already_fly):
-        if (self.fly_x == 0 and self.fly_y == 0) or (self.fly_x == 5 and self.fly_y == 0) or \
-                (self.fly_x == 0 and self.fly_y == 5) or (self.fly_x == 5 and self.fly_y == 5):
+        # 在四个角里就不继续了
+        if (self._fly_x == 0 and self._fly_y == 0) or (self._fly_x == 5 and self._fly_y == 0) or \
+                (self._fly_x == 0 and self._fly_y == 5) or (self._fly_x == 5 and self._fly_y == 5):
             return
 
+        # 此循环为向上下左右四个方向搜索（走）
         while self._can_fly(orientation):
-            p = self.board[self.fly_x][self.fly_y]
+            p = self._board[self._fly_x][self._fly_y]
             if p.camp != 0:
                 if p.camp + camp == 0:
                     if already_fly:
-                        # 可以飞了
-                        self.fly_path.append(p)
+                        # already_fly为True时表示已经至少绕过一圈了，可以飞了
+                        self._fly_path.append(p)
                     else:
-                        self.fly_path = []
+                        # 反之这样就被对方棋子挡住了，这条路不用搜了
+                        self._fly_path = []
                     return
                 else:
-                    if self.fly_x == x & self.fly_y == y:
-                        if len(self.fly_path) < 6:
+                    if self._fly_x == x and self._fly_y == y:
+                        # fly_path长度最多是8，因为最多绕4个小圈就不能再绕了，要不然就停不下来了
+                        if len(self._fly_path) < 9:
                             continue
                         else:
                             return
                     else:
-                        self.fly_path = []
+                        self._fly_path = []
                         return
 
-        if (self.fly_x == 0 and self.fly_y == 0) or (self.fly_x == 5 and self.fly_y == 0) or \
-                (self.fly_x == 0 and self.fly_y == 5) or (self.fly_x == 5 and self.fly_y == 5):
+        # 走到四个角里也就不继续了
+        if (self._fly_x == 0 and self._fly_y == 0) or (self._fly_x == 5 and self._fly_y == 0) or \
+                (self._fly_x == 0 and self._fly_y == 5) or (self._fly_x == 5 and self._fly_y == 5):
             return
 
         # node是在进圈的那个点
-        node = self.board[self.fly_x][self.fly_y]
-        self.fly_path.append(node)
+        node = self._board[self._fly_x][self._fly_y]
+        # 入圈点进入飞行数组
+        self._fly_path.append(node)
 
         # 获取绕完圈出口的点
-        next_node_x, next_node_y = self._pathway_table(copy.deepcopy(self.fly_x), copy.deepcopy(self.fly_y))
+        next_node_x, next_node_y = self._pathway_table(self._fly_x, self._fly_y)
+        # 获取到了就赋值给self.fly_x和self.fly_y
         if next_node_x != -1 and next_node_y != -1:
-            self.fly_x = next_node_x
-            self.fly_y = next_node_y
+            self._fly_x = next_node_x
+            self._fly_y = next_node_y
 
-        next_node = self.board[self.fly_x][self.fly_y]
+        # next_node是出圈的那个点
+        next_node = self._board[self._fly_x][self._fly_y]
         if next_node.camp != 0:
             if next_node.camp + camp == 0:
-                # 可以飞了
-                self.fly_path.append(next_node)
+                # 出圈点刚好可以吃，就可以飞了
+                self._fly_path.append(next_node)
             else:
-                self.fly_path = []
+                # 出圈点是自己阵营的棋子，那这条路不用搜了
+                self._fly_path = []
             return
         else:
-            orientation = self._direction_table(self.fly_x, self.fly_y)
-            self._fly_engine(x, y, orientation, camp, True) # bug
+            # 获取下一个出圈点的方向
+            orientation = self._direction_table(self._fly_x, self._fly_y)
+            # 递归继续搜下一个方向，这个时候肯定碰到对方棋子就肯定能吃了
+            self._fly_engine(x, y, orientation, camp, True)
 
+    # 8个方向找
     def _walk_engine(self, x, y):
         array = []
         if (x - 1 >= 0) & (y - 1 >= 0) & (x - 1 < 6) & (y - 1 < 6):
-            if self.board[x - 1][y - 1].camp == 0:
-                array.append(self.board[x - 1][y - 1])
+            if self._board[x - 1][y - 1].camp == 0:
+                array.append(self._board[x - 1][y - 1])
         if (x - 1 >= 0) & (y >= 0) & (x - 1 < 6) & (y < 6):
-            if self.board[x - 1][y].camp == 0:
-                array.append(self.board[x - 1][y])
+            if self._board[x - 1][y].camp == 0:
+                array.append(self._board[x - 1][y])
         if (x - 1 >= 0) & (y + 1 >= 0) & (x - 1 < 6) & (y + 1 < 6):
-            if self.board[x - 1][y + 1].camp == 0:
-                array.append(self.board[x - 1][y + 1])
+            if self._board[x - 1][y + 1].camp == 0:
+                array.append(self._board[x - 1][y + 1])
         if (x >= 0) & (y - 1 >= 0) & (x < 6) & (y - 1 < 6):
-            if self.board[x][y - 1].camp == 0:
-                array.append(self.board[x][y - 1])
+            if self._board[x][y - 1].camp == 0:
+                array.append(self._board[x][y - 1])
         if (x >= 0) & (y + 1 >= 0) & (x < 6) & (y + 1 < 6):
-            if self.board[x][y + 1].camp == 0:
-                array.append(self.board[x][y + 1])
+            if self._board[x][y + 1].camp == 0:
+                array.append(self._board[x][y + 1])
         if (x + 1 >= 0) & (y - 1 >= 0) & (x + 1 < 6) & (y - 1 < 6):
-            if self.board[x + 1][y - 1].camp == 0:
-                array.append(self.board[x + 1][y - 1])
+            if self._board[x + 1][y - 1].camp == 0:
+                array.append(self._board[x + 1][y - 1])
         if (x + 1 >= 0) & (y >= 0) & (x + 1 < 6) & (y < 6):
-            if self.board[x + 1][y].camp == 0:
-                array.append(self.board[x + 1][y])
+            if self._board[x + 1][y].camp == 0:
+                array.append(self._board[x + 1][y])
         if (x + 1 >= 0) & (y + 1 >= 0) & (x + 1 < 6) & (y + 1 < 6):
-            if self.board[x + 1][y + 1].camp == 0:
-                array.append(self.board[x + 1][y + 1])
+            if self._board[x + 1][y + 1].camp == 0:
+                array.append(self._board[x + 1][y + 1])
         return array
 
     @classmethod
