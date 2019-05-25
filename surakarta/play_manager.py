@@ -11,8 +11,13 @@ class PlayManager(object):
         self._fly_y = 0
         self._fly_path = []
 
-    # 调用这个获取下棋位置 返回的是字典数组{'from', 'to'} from是棋子 to是下棋的位置 都为chess对象
     def get_moves(self, camp: int, board: [[Chess]]) -> [dict]:
+        """
+        获取所有棋子的所有下棋位置
+        :param camp: 阵营
+        :param board: 棋盘，由chess对象组成
+        :return: 字典数组 {'from': chess, 'to': chess}，value为chess对象，from是谁下棋，to是下棋位置
+        """
         if camp == 0:
             raise RuntimeError("Camp must be - 1 or 1!!!")
 
@@ -20,28 +25,33 @@ class PlayManager(object):
         self._fly_x = 0
         self._fly_y = 0
         self._fly_path = []
-        fly_moves = self.create_fly_moves(camp)
+        fly_moves = self._create_fly_moves(camp)
+        # 如果可以吃子就只返回吃子的位置
         if len(fly_moves) > 0:
             return fly_moves
-        walk_moves = self.create_walk_moves(camp)
+        walk_moves = self._create_walk_moves(camp)
         walk_moves.extend(fly_moves)
         return walk_moves
 
     def get_game_moves(self, chess: Chess, board: [[Chess]]) -> [dict]:
-        self._board = board
+        """
+        获取一个棋子的所有下棋位置
+        :param chess: 要下棋的棋子
+        :param board: 棋盘，由chess对象组成
+        :return: 字典数组 {'from': chess, 'to': chess}，value为chess对象，from是谁下棋，to是下棋位置
+        """
+        self._board = copy.deepcopy(board)
         move_list = []
         walk_list = self._walk_engine(chess.x, chess.y)
-        if len(walk_list) > 0:
-            for w in walk_list:
-                move_list.append({"from": chess, "to": w})
+        for w in walk_list:
+            move_list.append({"from": chess, "to": w})
         fly_list = self._begin_fly(chess.x, chess.y, chess.camp)
-        if len(fly_list) > 0:
-            for fly in fly_list:
-                move_list.append({"from": chess, "to": fly[-1]})
+        for fly in fly_list:
+            move_list.append({"from": chess, "to": fly[-1]})
         return move_list
 
     @jit
-    def create_walk_moves(self, camp: int) -> [Chess]:
+    def _create_walk_moves(self, camp: int) -> [dict]:
         move_list = []
         for i in range(0, 6):
             for j in range(0, 6):
@@ -51,10 +61,10 @@ class PlayManager(object):
                     for w in walk_list:
                         d = {"from": p, "to": w}
                         move_list.append(d)
-        return copy.deepcopy(move_list)
+        return move_list
 
     @jit
-    def create_fly_moves(self, camp: int) -> [Chess]:
+    def _create_fly_moves(self, camp: int) -> [dict]:
         move_list = []
         for i in range(0, 6):
             for j in range(0, 6):
@@ -63,9 +73,9 @@ class PlayManager(object):
                     fly_list = self._begin_fly(p.x, p.y, p.camp)
                     for fly in fly_list:
                         move_list.append({"from": p, "to": fly[-1]})
-        return copy.deepcopy(move_list)
+        return move_list
 
-    def _begin_fly(self, x, y, camp):
+    def _begin_fly(self, x: int, y: int, camp: int) -> [Chess]:
         finish_fly_path = []
         for i in range(0, 4):
             self._fly_x = x
@@ -77,7 +87,7 @@ class PlayManager(object):
         return finish_fly_path
 
     # 向四个方向走
-    def _can_fly(self, orientation):
+    def _can_fly(self, orientation: int):
         # 向上
         if orientation == 0:
             self._fly_x -= 1
@@ -112,7 +122,7 @@ class PlayManager(object):
                 return True
         return False
 
-    def _fly_engine(self, x, y, orientation, camp, already_fly):
+    def _fly_engine(self, x: int, y: int, orientation: int, camp: int, already_fly: bool, depth: int = 0):
         # 在四个角里就不继续了
         if (self._fly_x == 0 and self._fly_y == 0) or (self._fly_x == 5 and self._fly_y == 0) or \
                 (self._fly_x == 0 and self._fly_y == 5) or (self._fly_x == 5 and self._fly_y == 5):
@@ -132,10 +142,11 @@ class PlayManager(object):
                     return
                 else:
                     if self._fly_x == x and self._fly_y == y:
-                        # fly_path长度最多是8，因为最多绕4个小圈就不能再绕了，要不然就停不下来了
-                        if len(self._fly_path) < 9:
+                        # 最多绕4个小圈就不能再绕了，要不然就停不下来了
+                        if depth < 4:
                             continue
                         else:
+                            self._fly_path = []
                             return
                     else:
                         self._fly_path = []
@@ -172,7 +183,11 @@ class PlayManager(object):
             # 获取下一个出圈点的方向
             orientation = self._direction_table(self._fly_x, self._fly_y)
             # 递归继续搜下一个方向，这个时候肯定碰到对方棋子就肯定能吃了
-            self._fly_engine(x, y, orientation, camp, True)
+            if depth < 4:
+                self._fly_engine(x, y, orientation, camp, True, depth=depth + 1)
+            else:
+                # 超过4次递归就说明没有搜到
+                self._fly_path = []
 
     # 8个方向找
     def _walk_engine(self, x, y):
