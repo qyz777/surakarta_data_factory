@@ -19,6 +19,10 @@ class Game(object):
             self._setup_board(game_info)
 
     def start_play(self):
+        """
+        自我随机下棋，用来生成棋盘数据
+        :return: 棋盘数据，赢的一方阵营
+        """
         self.reset_board()
         self._camp = random.choice([-1, 1])
         self._board_record_list = []
@@ -32,6 +36,9 @@ class Game(object):
         return self._board_record_list, winner
 
     def reset_board(self):
+        """
+        重置棋盘
+        """
         self._red = 12
         self._blue = 12
         self._board_record_list = []
@@ -56,6 +63,10 @@ class Game(object):
         self._board = copy.deepcopy(chess_lists)
 
     def do_move(self, info: dict):
+        """
+        下棋
+        :param info: 下棋的信息 数据结构必须满足 {'from': chess, 'to': chess}
+        """
         tread = info['from']
         can_move = info['to']
         tag = tread.tag
@@ -74,9 +85,13 @@ class Game(object):
         short_b.camp = short_camp
         self._board[can_move.x][can_move.y] = short_b
         new_board = copy.deepcopy(self._board)
+        if self.last_board_info is None:
+            record_board = new_board
+        else:
+            record_board = self.last_board_info["board"]
         # 棋盘记录信息
         self._board_record_list.append({
-            "board": self._zip_board(new_board),
+            "board": self._zip_board(record_board),
             "camp": self._camp,
             "red_num": self._red,
             "blue_num": self._blue,
@@ -98,8 +113,10 @@ class Game(object):
         if self._is_debug:
             self.debug_print()
 
-    # 撤回上一步
     def cancel_move(self):
+        """
+        撤回上一步
+        """
         if len(self._game_info_list) < 0:
             return
         elif len(self._game_info_list) == 1:
@@ -114,8 +131,11 @@ class Game(object):
         if self._is_debug:
             self.debug_print()
 
-    # return 是否胜利 camp
     def has_winner(self) -> (bool, int):
+        """
+        return 是否胜利 camp
+        :return: 是否结束，胜利阵营
+        """
         if self._red <= 0:
             return True, 1
         if self._blue <= 0:
@@ -123,6 +143,11 @@ class Game(object):
         return False, 0
 
     def get_chess_moves(self, tag: int) -> [dict]:
+        """
+        获得tag所对应的棋子所有下棋位置
+        :param tag: 棋子的tag
+        :return: 下棋位置，是一个字典构成的数组
+        """
         chess = None
         for i in range(0, 6):
             for j in range(0, 6):
@@ -130,20 +155,38 @@ class Game(object):
                     chess = self._board[i][j]
         return self._play_manager.get_game_moves(chess, self._board)
 
-    # 获取所有可以下棋的位置
     def get_moves(self) -> [dict]:
+        """
+        获取所有可以下棋的位置
+        :return: 所有可以下棋的位置，是一个字典构成的数组
+        """
         return self._play_manager.get_moves(self._camp, self._board)
 
     @property
     def chess_num(self):
+        """
+        所有棋子的数量
+        """
         return self._red + self._blue
 
     @property
     def chess_board(self):
+        """
+        棋盘数据结构
+        """
         return self._board
 
     @property
     def last_board_info(self) -> dict:
+        """
+        上一个棋盘的数据结构
+        {
+            "board": 棋盘数据结构(元素是Chess),
+            "camp": 阵营,
+            "red_num": 红方棋子数量,
+            "blue_num": 蓝方棋子数量
+        }
+        """
         if len(self._game_info_list) == 0:
             return None
         return self._game_info_list[-1]
