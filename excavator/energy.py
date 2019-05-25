@@ -1,4 +1,5 @@
 from helper import db_helper
+from excavator import setting
 
 
 class Energy:
@@ -9,7 +10,7 @@ class Energy:
     def show_win_rate(self):
         for i in range(1, 25):
             table_name = "chess_num_" + str(i)
-            data_list = self._db.select(table_name, ["*"], {"camp": 1})
+            data_list = self._db.select(table_name, ["*"], {"camp": setting.ai_camp()})
             prob_sum = 0
             print("————————{table_name}————————".format(table_name=table_name))
             for row in data_list:
@@ -37,7 +38,7 @@ class Energy:
 
     def select_go(self, info: dict) -> list:
         table_name = "chess_num_" + str(info["chess_num"])
-        where = {"board": info["board"], "camp": 1}
+        where = {"board": info["board"], "camp": setting.ai_camp()}
         data = self._db.select(table_name, ["*"], where)
         max_index = 0
         max_value = 0

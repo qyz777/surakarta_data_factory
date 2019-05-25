@@ -1,8 +1,8 @@
 from application.view import main_window
 from application.view import game_view
 from PyQt5.QtWidgets import QGridLayout
-from surakarta import game
-from excavator import cockpit
+from surakarta.game import Game
+from excavator.cockpit import Cockpit
 import copy
 
 
@@ -12,12 +12,12 @@ class GameController:
         self.window = main_window.MainWindow()
         self.selected_tag = 0
         self.move_list = []
-        self._player = -1  # player的值同 chess.camp 为-1和1
+        self._player = 1  # player的值同 chess.camp 为-1和1
         self._init_view()
-        self.game = game.Game(self._player)
+        self.game = Game(self._player)
         self.game.reset_board()
         self._is_ai_mode = True
-        self._excavator = cockpit.Cockpit()
+        self._excavator = Cockpit()
 
     def app_launch(self):
         self.window.show()
@@ -86,7 +86,7 @@ class GameController:
         self.game_view.move_chess(info["from"].tag, self._get_chess_frame(info["to"].x, info["to"].y))
 
     def _is_ai_go(self):
-        if self._is_ai_mode and self._player == 1:
+        if self._is_ai_mode and self._player == -1:
             return True
         return False
 

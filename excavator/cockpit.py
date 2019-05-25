@@ -2,6 +2,7 @@ from excavator.energy import Energy
 from excavator.engine import Engine
 from surakarta.chess import Chess
 import threading
+from numba import jit
 
 
 class Cockpit(object):
@@ -17,10 +18,12 @@ class Cockpit(object):
         result = energy.select_go(info)
         d = self._setup_chess_from_row(result, game_info["board"])
         if d is None:
+            print("选择α-β剪枝搜索")
             # 这里调用α-β剪枝搜索
             e = Engine(game_info, callback)
             e.start()
         else:
+            print("选择数据库搜索")
             callback(d)
 
     @staticmethod
@@ -42,6 +45,7 @@ class Cockpit(object):
         return {"from": from_chess, "to": to_chess}
 
     @staticmethod
+    @jit
     def _zip_board(board: [[Chess]]) -> str:
         zip_list = []
         for i in range(0, 6):
