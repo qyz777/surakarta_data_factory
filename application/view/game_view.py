@@ -90,9 +90,6 @@ class GameView(QWidget):
 
     @pyqtSlot()
     def _click_btn(self):
-        if self.sender().tag < 12:
-            # AI那方就不下棋了
-            return
         self.click_callback(self.sender().tag)
 
     @pyqtSlot()

@@ -33,6 +33,9 @@ class GameController:
 
     def _did_click_btn(self, tag):
         tag = int(tag)
+        # AI模式下就不让上方可以点击了
+        if self._is_ai_mode and tag < 13:
+            return
         # 判断是否轮到当前玩家下棋
         if self._player == -1 and tag > 12:
             return
