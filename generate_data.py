@@ -1,10 +1,11 @@
-from surakarta import game
-from helper import db_helper
-import os, time
+import os
+import time
 from multiprocessing import Queue, Process
 
+from helper.db_helper import DBHelper
+from surakarta import game
 
-PLAY_COUNT = 50
+PLAY_COUNT = 100
 
 
 def remove_lose_data(data_list, winner_camp):
@@ -16,7 +17,7 @@ def remove_lose_data(data_list, winner_camp):
 
 
 def start(q: Queue):
-    g = game.Game(is_debug=False)
+    g = game.Game(is_debug=False, camp=-1)
     for i in range(0, PLAY_COUNT):
         print("进程:%s 场次:%d" % (os.getpid(), i))
         data, winner = g.start_play()
@@ -25,16 +26,16 @@ def start(q: Queue):
 
 def write_into_db(q: Queue):
     if os.path.exists('./data.db'):
-        db = db_helper.DBHelper("data.db")
+        db = DBHelper("data.db")
     else:
-        db = db_helper.DBHelper("data.db")
+        db = DBHelper("data.db")
         db.create_tables()
     while True:
         data = q.get()
         s = time.time()
         db.update_data(data)
         e = time.time()
-        print("数量:%d 耗时:%.2fs 队列还剩:%d" % (len(data), e - s, q.qsize()))
+        print("数量:%d 耗时:%.2fs" % (len(data), e - s))
 
 
 if __name__ == '__main__':
