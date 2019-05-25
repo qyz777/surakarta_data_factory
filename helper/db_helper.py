@@ -11,11 +11,13 @@ class DBHelper(object):
     def update_data(self, data):
         for info in data:
             table_name = "chess_num_" + str(info["chess_num"])
-            column = self.select(
-                table_name,
-                ["id", "prob"],
-                {"board": info["board"], "camp": info["camp"]}
-            )
+            where = {"board": info["board"],
+                     "camp": info["camp"],
+                     "from_x": info["from_x"],
+                     "from_y": info["from_y"],
+                     "to_x": info["to_x"],
+                     "to_y": info["to_y"]}
+            column = self.select(table_name, ["id", "prob"], where)
             if len(column) > 0:
                 self._update(table_name, {"prob": int(column[0][1]) + 1}, {"id": int(column[0][0])})
             else:

@@ -40,8 +40,6 @@ class Cockpit(object):
         to_chess.x = row[8]
         to_chess.y = row[9]
         to_chess.tag = board[row[8]][row[9]].tag
-        if to_chess.tag == 0:
-            return None
         return {"from": from_chess, "to": to_chess}
 
     @staticmethod
