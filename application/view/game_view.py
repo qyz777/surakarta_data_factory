@@ -22,8 +22,10 @@ class GameView(QWidget):
         self.change_mode_callback = None
         self.targets = []
         self.chess_list = []
+        self._player = -1
         self._is_ai_first_go = False
         self._init_view()
+        self._init_timer()
 
     def _init_view(self):
         self._setup_buttons()
@@ -50,6 +52,21 @@ class GameView(QWidget):
         self.begin_button.setText("开始")
         self.begin_button.setGeometry(INTERVAL * 10, 70, 200, 25)
         self.begin_button.clicked.connect(self._click_begin_button)
+        self.red_time_label = QLabel(self)
+        self.red_time_label.setText("00:00")
+        self.red_time_label.setStyleSheet("color: red")
+        self.red_time_label.setGeometry(INTERVAL * 10, 100, 100, 25)
+        self.blue_time_label = QLabel(self)
+        self.blue_time_label.setText("00:00")
+        self.blue_time_label.setStyleSheet("color: blue")
+        self.blue_time_label.setGeometry(INTERVAL * 10 + 100, 100, 100, 25)
+
+    def _init_timer(self):
+        self._red_time = 0
+        self._blue_time = 0
+        self._timer = QTimer(self)
+        self._timer.setInterval(1000)
+        self._timer.timeout.connect(self._timer_operate)
 
     def show_targets(self, frames):
         self.remove_all_targets()
@@ -75,6 +92,7 @@ class GameView(QWidget):
                 break
 
     def move_chess(self, chess_tag, to_frame):
+        self._player = -self._player
         for chess in self.chess_list:
             if chess_tag == chess.tag:
                 chess.move(to_frame[1] - CHESS_SIZE / 2, to_frame[0] - CHESS_SIZE / 2)
@@ -108,13 +126,38 @@ class GameView(QWidget):
         self.first_human_radio.setEnabled(False)
         self.first_ai_radio.setEnabled(False)
         self.game_begin_callback(self._is_ai_first_go)
+        self._timer.start()
 
     @pyqtSlot()
     def _select_first_radio(self):
         if self.sender().checkedId() == 1:
             self._is_ai_first_go = False
+            self._player = 1
         else:
             self._is_ai_first_go = True
+            self._player = -1
+
+    @pyqtSlot()
+    def _timer_operate(self):
+        if self._player == -1:
+            self._red_time += 1
+        else:
+            self._blue_time += 1
+        time = self._red_time if self._player == -1 else self._blue_time
+        m = int(time / 60)
+        if m < 10:
+            str_m = "0{m}".format(m=m)
+        else:
+            str_m = str(m)
+        s = time - m * 60
+        if s < 10:
+            str_s = "0{s}".format(s=s)
+        else:
+            str_s = str(s)
+        if self._player == -1:
+            self.red_time_label.setText(str_m + ":" + str_s)
+        else:
+            self.blue_time_label.setText(str_m + ":" + str_s)
 
     def _setup_buttons(self):
         begin_x = INTERVAL * 2
