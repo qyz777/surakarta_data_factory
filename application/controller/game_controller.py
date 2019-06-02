@@ -75,11 +75,18 @@ class GameController:
                 self.game.do_move(info)
                 # 修改当前player
                 self._player = -self._player
+                self.game_view.add_move_info(info["from"].tag,
+                                             (info["from"].x, info["from"].y),
+                                             (info["to"].x, info["to"].y))
                 break
         # 清理使用过的数据
         self.selected_tag = 0
         self.move_list.clear()
-        self._ai_go_if_need()
+        win, player = self.game.has_winner()
+        if win:
+            self.game_view.show_game_end(player)
+        else:
+            self._ai_go_if_need()
 
     def _game_begin(self, is_ai_first):
         self._is_game_begin = True

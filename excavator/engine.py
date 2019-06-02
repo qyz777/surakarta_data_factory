@@ -3,26 +3,33 @@ from excavator import setting
 import sys
 import random
 
-
 sys.setrecursionlimit(1000000)
 
 
 class Engine(object):
 
-    def __init__(self, game_info: dict, callback):
+    def __init__(self, game_info: dict):
         self._game = game.Game(setting.ai_camp(), is_debug=False, game_info=game_info)
-        self._callback = callback
 
-    def start(self):
+    def ignition(self) -> dict:
+        """
+        开始进行α-β搜索，搜不到就随机选一步
+        :return: 着法
+        """
         _, action = self._min_max_search(setting.ai_camp())
         print("α-β剪枝搜索完成")
         if action is None:
             print("搜索错误，随机走一步")
             all_moves = self._game.get_moves()
-            self._callback(random.choice(all_moves))
+            move = None
+            for m in all_moves:
+                if m["to"].tag != 0:
+                    move = m
+            move = random.choice(all_moves) if move is None else move
+            return move
         else:
             print("搜索成功")
-            self._callback(action)
+            return action
 
     # 这其实是个回溯算法
     def _min_max_search(self, player: int, memo: dict = None, depth: int = 0) -> (int, dict):

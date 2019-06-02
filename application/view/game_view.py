@@ -60,6 +60,8 @@ class GameView(QWidget):
         self.blue_time_label.setText("00:00")
         self.blue_time_label.setStyleSheet("color: blue")
         self.blue_time_label.setGeometry(INTERVAL * 10 + 100, 100, 100, 25)
+        self.list_widget = QListWidget(self)
+        self.list_widget.setGeometry(INTERVAL * 10, 130, 200, 300)
 
     def _init_timer(self):
         self._red_time = 0
@@ -67,6 +69,13 @@ class GameView(QWidget):
         self._timer = QTimer(self)
         self._timer.setInterval(1000)
         self._timer.timeout.connect(self._timer_operate)
+
+    def show_game_end(self, player):
+        if player == -1:
+            message = "红方获胜"
+        else:
+            message = "蓝方获胜"
+        print(message)
 
     def show_targets(self, frames):
         self.remove_all_targets()
@@ -100,6 +109,15 @@ class GameView(QWidget):
                 self.chess_move_callback(to_frame)
                 return
 
+    def add_move_info(self, tag: int, f: tuple, t: tuple):
+        text = "tag {tag}: ({fx}, {fy}) -> ({tx}, {ty})".format(tag=tag,
+                                                                fx=f[0],
+                                                                fy=f[1],
+                                                                tx=t[0],
+                                                                ty=t[1])
+        item = QListWidgetItem(text)
+        self.list_widget.addItem(item)
+
     @pyqtSlot()
     def _click_btn(self):
         self.click_callback(self.sender().tag)
@@ -121,6 +139,7 @@ class GameView(QWidget):
 
     @pyqtSlot()
     def _click_begin_button(self):
+        self.begin_button.setEnabled(False)
         self.ai_radio.setEnabled(False)
         self.human_radio.setEnabled(False)
         self.first_human_radio.setEnabled(False)

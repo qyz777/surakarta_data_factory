@@ -10,6 +10,7 @@ class Cockpit(object):
     def search(self, game_info: dict, callback):
         thread = threading.Thread(target=self._search, args=(game_info, callback))
         thread.start()
+        thread.join()
 
     def _search(self, game_info: dict, callback):
         energy = Energy()
@@ -19,9 +20,9 @@ class Cockpit(object):
         d = self._setup_chess_from_row(result, game_info["board"])
         if d is None:
             print("选择α-β剪枝搜索")
-            # 这里调用α-β剪枝搜索
-            e = Engine(game_info, callback)
-            e.start()
+            e = Engine(game_info)
+            move = e.ignition()
+            callback(move)
         else:
             print("选择数据库搜索")
             callback(d)
