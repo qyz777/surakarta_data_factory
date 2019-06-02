@@ -1,5 +1,7 @@
 from surakarta import game
+from surakarta.chess import Chess
 from excavator import setting
+from numba import jit
 import sys
 import random
 
@@ -13,6 +15,7 @@ class Engine(object):
 
     def ignition(self) -> dict:
         """
+        点火
         开始进行α-β搜索，搜不到就随机选一步
         :return: 着法
         """
@@ -31,8 +34,14 @@ class Engine(object):
             print("搜索成功")
             return action
 
-    # 这其实是个回溯算法
     def _min_max_search(self, player: int, memo: dict = None, depth: int = 0) -> (int, dict):
+        """
+        α-β剪枝的本质是一个回溯算法，这里用了memo作为字典去记录走过的路径
+        :param player: 玩家
+        :param memo: 存储走过的路径
+        :param depth: 深度
+        :return: 价值和着法
+        """
         if memo is None:
             memo = {}
 
@@ -46,12 +55,9 @@ class Engine(object):
             else:
                 return -10 + depth, None
         all_moves = self._game.get_moves()
+        all_moves = self._filtration(all_moves, player)
         for action in all_moves:
-            key = "{tag}:{from_x},{from_y}->{to_x},{to_y}".format(tag=action["from"].tag,
-                                                                  from_x=action["from"].x,
-                                                                  from_y=action["from"].y,
-                                                                  to_x=action["to"].x,
-                                                                  to_y=action["to"].y)
+            key = self._get_a_key(action)
             if key in memo:
                 continue
             self._game.do_move(action)
@@ -65,9 +71,57 @@ class Engine(object):
                 best_value, best_action = value, action
             else:
                 if player == -1:
+                    # 对于我方来说，要选择value最大的
                     if value > best_value:
                         best_value, best_action = value, action
                 else:
+                    # 对于对方来说，要选择value最小的
                     if value < best_value:
                         best_value, best_action = value, action
         return best_value, best_action
+
+    @staticmethod
+    def _evaluate(chessboard: [[Chess]], camp: int) -> int:
+        score = 0
+        for row in chessboard:
+            for chess in row:
+                if chess.camp == camp:
+                    score += 1
+        return score
+
+    @staticmethod
+    def _get_a_key(action: dict) -> str:
+        return "{tag}:{from_x},{from_y}->{to_x},{to_y}".format(tag=action["from"].tag,
+                                                               from_x=action["from"].x,
+                                                               from_y=action["from"].y,
+                                                               to_x=action["to"].x,
+                                                               to_y=action["to"].y)
+
+    @jit
+    def _filtration(self, move_list: [dict], player: int) -> [dict]:
+        """
+        过滤不需要的着法
+        :param move_list: 着法列表
+        :return: 过滤后的着法列表
+        """
+        my_attack_list = self._get_red_attack_list() if player == -1 else self._get_blue_attack_list()
+        new_move_list = []
+        fly_move_list = []
+        for move in move_list:
+            if (move["to"].x, move["to"].y) in my_attack_list:
+                new_move_list.append(move)
+            elif move["to"].tag != 0:
+                fly_move_list.append(move)
+        if len(fly_move_list) == 0:
+            return move_list
+        else:
+            new_move_list.extend(fly_move_list)
+            return fly_move_list
+
+    @staticmethod
+    def _get_red_attack_list() -> [(int, int)]:
+        return [(3, 1), (3, 4), (4, 2), (4, 3)]
+
+    @staticmethod
+    def _get_blue_attack_list() -> [(int, int)]:
+        return [(1, 2), (1, 3), (2, 1), (2, 4)]

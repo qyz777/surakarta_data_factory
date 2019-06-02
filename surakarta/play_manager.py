@@ -26,9 +26,6 @@ class PlayManager(object):
         self._fly_y = 0
         self._fly_path = []
         fly_moves = self._create_fly_moves(camp)
-        # 如果可以吃子就只返回吃子的位置
-        if len(fly_moves) > 0:
-            return fly_moves
         walk_moves = self._create_walk_moves(camp)
         walk_moves.extend(fly_moves)
         return walk_moves

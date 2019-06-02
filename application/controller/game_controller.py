@@ -109,7 +109,7 @@ class GameController:
                     "red_num": 12,
                     "blue_num": 12
                 }
-            self._excavator.search(board_info, self._ai_go)
+            self._excavator.scoop(board_info, self._ai_go)
 
     def _ai_go(self, info: dict):
         self.game_view.remove_all_targets()

@@ -1,16 +1,24 @@
 from excavator.energy import Energy
 from excavator.engine import Engine
+from excavator import setting
 from surakarta.chess import Chess
+from surakarta.game import Game
 import threading
 from numba import jit
 
 
 class Cockpit(object):
 
-    def search(self, game_info: dict, callback):
+    def scoop(self, game_info: dict, callback):
+        """
+        挖
+        α-β剪枝搜索 or 数据库搜索
+        :param game_info: 游戏信息
+        :param callback: 回调
+        :return:
+        """
         thread = threading.Thread(target=self._search, args=(game_info, callback))
         thread.start()
-        thread.join()
 
     def _search(self, game_info: dict, callback):
         energy = Energy()
