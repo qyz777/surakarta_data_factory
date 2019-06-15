@@ -38,13 +38,16 @@ class GameController:
         if self._is_game_begin is False:
             return
         tag = int(tag)
-        # AI模式下就不让上方可以点击了
-        if self._is_ai_mode and tag < 13:
-            return
+        # AI模式下就不让对方可以点击了
+        if self._is_ai_mode:
+            if self._excavator.ai_camp == -1 and tag < 13:
+                return
+            elif self._excavator.ai_camp == 1 and tag > 12:
+                return
         # 判断是否轮到当前玩家下棋
         if self._player == -1 and tag > 12:
             return
-        if self._player == 1 and tag < 13:
+        elif self._player == 1 and tag < 13:
             return
         # 1. 获得点击棋子所有可下棋位置
         array = self.game.get_chess_moves(tag)
@@ -91,10 +94,10 @@ class GameController:
     def _game_begin(self, is_ai_first):
         self._is_game_begin = True
         if is_ai_first:
-            self._player = -1
+            self._excavator.ai_camp = 1
             self._ai_go_if_need()
         else:
-            self._player = 1
+            self._excavator.ai_camp = -1
 
     def _change_game_mode(self, mode):
         self._is_ai_mode = mode == 2
@@ -119,7 +122,7 @@ class GameController:
         self.game_view.move_chess(info["from"].tag, self._get_chess_frame(info["to"].x, info["to"].y))
 
     def _is_ai_go(self):
-        if self._is_ai_mode and self._player == -1:
+        if self._is_ai_mode and self._player == self._excavator.ai_camp:
             return True
         return False
 

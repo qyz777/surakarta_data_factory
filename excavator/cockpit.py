@@ -1,6 +1,5 @@
 from excavator.energy import Energy
 from excavator.engine import Engine
-from excavator import setting
 from surakarta.chess import Chess
 from surakarta.game import Game
 import threading
@@ -8,6 +7,9 @@ from numba import jit
 
 
 class Cockpit(object):
+
+    def __init__(self):
+        self.ai_camp = -1
 
     def scoop(self, game_info: dict, callback):
         """
@@ -21,14 +23,14 @@ class Cockpit(object):
         thread.start()
 
     def _search(self, game_info: dict, callback):
-        energy = Energy()
+        energy = Energy(self.ai_camp)
         info = {"chess_num": game_info["red_num"] + game_info["blue_num"],
                 "board": self._zip_board(game_info["board"])}
         result = energy.select_go(info)
         d = self._setup_chess_from_row(result, game_info["board"])
         if d is None:
             print("选择α-β剪枝搜索")
-            e = Engine(game_info)
+            e = Engine(game_info, self.ai_camp)
             move = e.ignition()
             callback(move)
         else:

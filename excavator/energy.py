@@ -1,10 +1,10 @@
 from helper import db_helper
-from excavator import setting
 
 
 class Energy:
 
-    def __init__(self):
+    def __init__(self, ai_camp: int):
+        self._ai_camp = ai_camp
         self._db = db_helper.DBHelper("data.db")
 
     def get_max_rate_step(self, camp: int, chess_num: int) -> (int, int, int, int):
@@ -23,7 +23,7 @@ class Energy:
 
     def select_go(self, info: dict) -> list:
         table_name = "chess_num_" + str(info["chess_num"])
-        where = {"board": info["board"], "camp": setting.ai_camp()}
+        where = {"board": info["board"], "camp": self._ai_camp}
         data = self._db.select(table_name, ["*"], where)
         max_index = 0
         max_value = 0

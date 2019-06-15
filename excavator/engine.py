@@ -1,6 +1,5 @@
 from surakarta import game
 from surakarta.chess import Chess
-from excavator import setting
 from numba import jit
 import sys
 import random
@@ -10,8 +9,9 @@ sys.setrecursionlimit(1000000)
 
 class Engine(object):
 
-    def __init__(self, game_info: dict):
-        self._game = game.Game(setting.ai_camp(), is_debug=False, game_info=game_info)
+    def __init__(self, game_info: dict, ai_camp: int):
+        self._ai_camp = ai_camp
+        self._game = game.Game(self._ai_camp, is_debug=False, game_info=game_info)
 
     def ignition(self) -> dict:
         """
@@ -19,7 +19,7 @@ class Engine(object):
         开始进行α-β搜索，搜不到就随机选一步
         :return: 着法
         """
-        _, action = self._min_max_search(setting.ai_camp())
+        _, action = self._min_max_search(self._ai_camp)
         print("α-β剪枝搜索完成")
         if action is None:
             print("搜索错误，随机走一步")
@@ -50,7 +50,7 @@ class Engine(object):
 
         win, camp = self._game.has_winner()
         if win:
-            if camp == 1:
+            if camp == -self._ai_camp:
                 return 10 - depth, None
             else:
                 return -10 + depth, None
@@ -70,7 +70,7 @@ class Engine(object):
             if best_value is None:
                 best_value, best_action = value, action
             else:
-                if player == -1:
+                if player == self._ai_camp:
                     # 对于我方来说，要选择value最大的
                     if value > best_value:
                         best_value, best_action = value, action
