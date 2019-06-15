@@ -174,7 +174,7 @@ class Game(object):
         """
         棋盘数据结构
         """
-        return self._board
+        return copy.deepcopy(self._board)
 
     @property
     def last_board_info(self) -> dict:
