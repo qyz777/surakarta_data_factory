@@ -10,6 +10,7 @@ class Cockpit(object):
 
     def __init__(self):
         self.ai_camp = -1
+        self._is_use_db = True
 
     def scoop(self, game_info: dict, callback):
         """
@@ -26,8 +27,10 @@ class Cockpit(object):
         energy = Energy(self.ai_camp)
         info = {"chess_num": game_info["red_num"] + game_info["blue_num"],
                 "board": self._zip_board(game_info["board"])}
-        result = energy.select_go(info)
-        d = self._setup_chess_from_row(result, game_info["board"])
+        d = None
+        if self._is_use_db:
+            result = energy.select_go(info)
+            d = self._setup_chess_from_row(result, game_info["board"])
         if d is None:
             print("选择α-β剪枝搜索")
             e = Engine(game_info, self.ai_camp)
