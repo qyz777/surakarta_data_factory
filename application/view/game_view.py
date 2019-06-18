@@ -214,7 +214,6 @@ class GameView(QWidget):
     def paintEvent(self, QPaintEvent):
         painter = QPainter(self)
         painter.setPen(QColor(166, 66, 250))
-        painter.begin(self)
         # 左上
         painter.drawArc(0, 0, LONG_RADIUS, LONG_RADIUS, 0, 270 * 16)
         painter.drawArc(INTERVAL, INTERVAL, SHORT_RADIUS, SHORT_RADIUS, 0, 270 * 16)
@@ -247,5 +246,3 @@ class GameView(QWidget):
         painter.drawLine(INTERVAL * 2, INTERVAL * 6, INTERVAL * 7, INTERVAL * 6)
         painter.drawLine(INTERVAL * 2, INTERVAL * 7, INTERVAL * 7, INTERVAL * 7)
         painter.drawLine(INTERVAL * 2, INTERVAL * 7, INTERVAL * 7, INTERVAL * 7)
-
-        painter.end()
