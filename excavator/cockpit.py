@@ -10,7 +10,7 @@ class Cockpit(object):
 
     def __init__(self):
         self.ai_camp = -1
-        self._is_use_db = True
+        self._is_use_db = False
 
     def scoop(self, game_info: dict, callback):
         """
