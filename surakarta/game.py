@@ -111,6 +111,11 @@ class Game(object):
         # 修改阵营
         self._camp = -self._camp
         if self._is_debug:
+            print("{tag}:{from_x},{from_y}->{to_x},{to_y}".format(tag=info["from"].tag,
+                                                                  from_x=info["from"].x,
+                                                                  from_y=info["from"].y,
+                                                                  to_x=info["to"].x,
+                                                                  to_y=info["to"].y))
             self.debug_print()
 
     def cancel_move(self):
@@ -124,8 +129,8 @@ class Game(object):
             return
         self._game_info_list.pop()
         last_game_info = self._game_info_list[-1]
-        self._board = last_game_info["board"]
-        self._camp = last_game_info["camp"]
+        self._board = copy.deepcopy(last_game_info["board"])
+        self._camp = -self._camp
         self._red = last_game_info["red_num"]
         self._blue = last_game_info["blue_num"]
         if self._is_debug:
