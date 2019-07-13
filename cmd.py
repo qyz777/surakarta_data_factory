@@ -22,12 +22,14 @@ class Cmd(object):
         self.socket.connect((host_name, port))
 
     def start(self):
-        is_ai_first = self._ai_camp == 1
+        is_ai_first = False
         while True:
+            msg = self.socket.recv(2048).decode()
+            if len(msg) == 1:
+                is_ai_first = True
             if is_ai_first:
                 is_ai_first = False
                 self._ai_go()
-            msg = self.socket.recv(2048).decode()
             chess_list = msg.split(" ")
             if len(chess_list) != 4:
                 print("⚠️ 输入错误: 缺少输入参数")
