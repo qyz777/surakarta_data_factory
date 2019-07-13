@@ -6,18 +6,18 @@ import random
 
 sys.setrecursionlimit(1000000)
 
-SEARCH_DEPTH = 5
+SEARCH_DEPTH = 5 # 1-6层之内可以接受
 SEARCH_TYPE = 1
 SEARCH_WIN_WEIGHT = 50
 
 
-class Engine(object):
+class Search(object):
 
     def __init__(self, game_info: dict, ai_camp: int):
         self._ai_camp = ai_camp
         self._game = game.Game(self._ai_camp, is_debug=False, game_info=game_info)
 
-    def ignition(self) -> dict:
+    def start(self) -> dict:
         """
         点火
         开始进行α-β搜索，搜不到就随机选一步
@@ -99,7 +99,7 @@ class Engine(object):
         :return: 价值和着法
         """
         # 适当时机清理memo
-        if memo is None or (depth + 1) % 2 == 0:
+        if memo is None or (depth + 1) % 3 == 0:
             memo = {}
 
         best_value: int = None

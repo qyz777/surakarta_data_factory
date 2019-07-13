@@ -2,7 +2,7 @@ from application.view import main_window
 from application.view import game_view
 from PyQt5.QtWidgets import QGridLayout
 from surakarta.game import Game
-from excavator.cockpit import Cockpit
+from nemesis.core import Core
 import copy
 
 
@@ -17,7 +17,7 @@ class GameController:
         self.game = Game(self._player)
         self.game.reset_board()
         self._is_ai_mode = True
-        self._excavator = Cockpit()
+        self._ai_core = Core()
         self._is_game_begin = False
 
     def app_launch(self):
@@ -40,9 +40,9 @@ class GameController:
         tag = int(tag)
         # AI模式下就不让对方可以点击了
         if self._is_ai_mode:
-            if self._excavator.ai_camp == -1 and tag < 13:
+            if self._ai_core.ai_camp == -1 and tag < 13:
                 return
-            elif self._excavator.ai_camp == 1 and tag > 12:
+            elif self._ai_core.ai_camp == 1 and tag > 12:
                 return
         # 判断是否轮到当前玩家下棋
         if self._player == -1 and tag > 12:
@@ -94,10 +94,10 @@ class GameController:
     def _game_begin(self, is_ai_first):
         self._is_game_begin = True
         if is_ai_first:
-            self._excavator.ai_camp = 1
+            self._ai_core.ai_camp = 1
             self._ai_go_if_need()
         else:
-            self._excavator.ai_camp = -1
+            self._ai_core.ai_camp = -1
 
     def _change_game_mode(self, mode):
         self._is_ai_mode = mode == 2
@@ -112,7 +112,7 @@ class GameController:
                     "red_num": 12,
                     "blue_num": 12
                 }
-            self._excavator.scoop(board_info, self._ai_go)
+            self._ai_core.playing(board_info, self._ai_go)
 
     def _ai_go(self, info: dict):
         self.game_view.remove_all_targets()
@@ -122,7 +122,7 @@ class GameController:
         self.game_view.move_chess(info["from"].tag, self._get_chess_frame(info["to"].x, info["to"].y))
 
     def _is_ai_go(self):
-        if self._is_ai_mode and self._player == self._excavator.ai_camp:
+        if self._is_ai_mode and self._player == self._ai_core.ai_camp:
             return True
         return False
 

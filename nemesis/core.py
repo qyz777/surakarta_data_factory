@@ -1,18 +1,18 @@
-from excavator.energy import Energy
-from excavator.engine import Engine
+from nemesis.db import DB
+from nemesis.search import Search
 from surakarta.chess import Chess
 from surakarta.game import Game
 import threading
 from numba import jit
 
 
-class Cockpit(object):
+class Core(object):
 
     def __init__(self):
         self.ai_camp = -1
         self._is_use_db = False
 
-    def scoop(self, game_info: dict, callback):
+    def playing(self, game_info: dict, callback):
         """
         挖
         α-β剪枝搜索 or 数据库搜索
@@ -20,11 +20,11 @@ class Cockpit(object):
         :param callback: 回调
         :return:
         """
-        thread = threading.Thread(target=self._search, args=(game_info, callback))
+        thread = threading.Thread(target=self._playing, args=(game_info, callback))
         thread.start()
 
-    def _search(self, game_info: dict, callback):
-        energy = Energy(self.ai_camp)
+    def _playing(self, game_info: dict, callback):
+        energy = DB(self.ai_camp)
         info = {"chess_num": game_info["red_num"] + game_info["blue_num"],
                 "board": self._zip_board(game_info["board"])}
         d = None
@@ -33,8 +33,8 @@ class Cockpit(object):
             d = self._setup_chess_from_row(result, game_info["board"])
         if d is None:
             print("选择α-β剪枝搜索")
-            e = Engine(game_info, self.ai_camp)
-            move = e.ignition()
+            e = Search(game_info, self.ai_camp)
+            move = e.start()
             callback(move)
         else:
             print("选择数据库搜索")

@@ -1,7 +1,7 @@
 from helper import db_helper
 
 
-class Energy:
+class DB:
 
     def __init__(self, ai_camp: int):
         self._ai_camp = ai_camp
