@@ -1,6 +1,6 @@
 from surakarta.game import Game
 from surakarta.chess import Chess
-from excavator.cockpit import Cockpit
+from nemesis.core import Core
 
 AI_CAMP = 1
 
@@ -11,8 +11,8 @@ class Cmd(object):
         self._ai_camp = ai_camp
         self._game = Game(self._ai_camp, is_debug=True)
         self._game.reset_board()
-        self.excavator = Cockpit()
-        self.excavator.ai_camp = self._ai_camp
+        self._ai_core = Core()
+        self._ai_core.ai_camp = self._ai_camp
 
     def start(self):
         is_ai_first = self._ai_camp == 1
@@ -56,7 +56,7 @@ class Cmd(object):
         return board_info
 
     def _ai_go(self):
-        self.excavator.scoop(self._get_board_info(), self._ai_move_callback)
+        self._ai_core.playing(self._get_board_info(), self._ai_move_callback)
 
     def _ai_move_callback(self, info: dict):
         self._game.do_move(info)
