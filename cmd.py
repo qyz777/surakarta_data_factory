@@ -13,6 +13,7 @@ class Cmd(object):
         self._game.reset_board()
         self._ai_core = Core()
         self._ai_core.ai_camp = self._ai_camp
+        self.step_num = 0
 
     def start(self):
         is_ai_first = self._ai_camp == 1
@@ -34,6 +35,7 @@ class Cmd(object):
                 continue
             info = {"from": from_chess, "to": to_chess}
             self._game.do_move(info)
+            self.step_num += 1
             self._ai_go()
 
     def find_chess(self, x: int, y: int) -> Chess:
@@ -53,6 +55,7 @@ class Cmd(object):
                 "red_num": 12,
                 "blue_num": 12
             }
+        board_info.update({"step_num": self.step_num})
         return board_info
 
     def _ai_go(self):
