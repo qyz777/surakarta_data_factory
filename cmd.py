@@ -1,8 +1,12 @@
 from surakarta.game import Game
 from surakarta.chess import Chess
 from nemesis.core import Core
+import socket
+
 
 AI_CAMP = 1
+host_name = "localhost"
+port = 1024
 
 
 class Cmd(object):
@@ -14,6 +18,8 @@ class Cmd(object):
         self._ai_core = Core()
         self._ai_core.ai_camp = self._ai_camp
         self.step_num = 0
+        self.socket = socket.socket()
+        self.socket.connect((host_name, port))
 
     def start(self):
         is_ai_first = self._ai_camp == 1
@@ -21,7 +27,7 @@ class Cmd(object):
             if is_ai_first:
                 is_ai_first = False
                 self._ai_go()
-            msg = input()
+            msg = self.socket.recv(2048).decode()
             chess_list = msg.split(" ")
             if len(chess_list) != 4:
                 print("⚠️ 输入错误: 缺少输入参数")
@@ -63,10 +69,12 @@ class Cmd(object):
 
     def _ai_move_callback(self, info: dict):
         self._game.do_move(info)
-        print('''{x1} {y1} {x2} {y2}'''.format(x1=str(info["from"].y),
-                                               y1=str(info["from"].x),
-                                               x2=str(info["to"].y),
-                                               y2=str(info["to"].x)))
+        output = '''{x1} {y1} {x2} {y2}'''.format(x1=str(info["from"].y),
+                                                  y1=str(info["from"].x),
+                                                  x2=str(info["to"].y),
+                                                  y2=str(info["to"].x))
+        self.socket.send(output.encode())
+        print(output)
 
 
 if __name__ == '__main__':
