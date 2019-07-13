@@ -1,5 +1,6 @@
 from nemesis.db import DB
-from nemesis.search import Search
+from nemesis.search import Search, SearchConfig
+from nemesis.tactics import Tactics
 from surakarta.chess import Chess
 from surakarta.game import Game
 import threading
@@ -11,10 +12,11 @@ class Core(object):
     def __init__(self):
         self.ai_camp = -1
         self._is_use_db = False
+        self.is_first = False
 
     def playing(self, game_info: dict, callback):
         """
-        挖
+        下棋
         α-β剪枝搜索 or 数据库搜索
         :param game_info: 游戏信息
         :param callback: 回调
@@ -24,17 +26,25 @@ class Core(object):
         thread.start()
 
     def _playing(self, game_info: dict, callback):
-        energy = DB(self.ai_camp)
+        step_num = game_info["step_num"] / 2
+        if self.is_first and step_num < 3:
+            tactic = Tactics.pre_tactic(game_info["board"], step_num)
+            if tactic is not None:
+                callback(tactic)
+                return
+
+        db = DB(self.ai_camp)
         info = {"chess_num": game_info["red_num"] + game_info["blue_num"],
                 "board": self._zip_board(game_info["board"])}
         d = None
         if self._is_use_db:
-            result = energy.select_go(info)
+            result = db.select_go(info)
             d = self._setup_chess_from_row(result, game_info["board"])
         if d is None:
             print("选择α-β剪枝搜索")
-            e = Search(game_info, self.ai_camp)
-            move = e.start()
+            config = self._get_search_config(step_num)
+            search = Search(game_info, self.ai_camp, config)
+            move = search.start()
             callback(move)
         else:
             print("选择数据库搜索")
@@ -64,3 +74,9 @@ class Core(object):
             for j in range(0, 6):
                 zip_list.append(str(board[i][j].camp))
         return ",".join(zip_list)
+
+    @staticmethod
+    def _get_search_config(step_num: int) -> SearchConfig:
+        config = SearchConfig()
+        config.use_filter = True
+        return config

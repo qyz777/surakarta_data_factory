@@ -19,6 +19,7 @@ class GameController:
         self._is_ai_mode = True
         self._ai_core = Core()
         self._is_game_begin = False
+        self._step_num = 0
 
     def app_launch(self):
         self.window.show()
@@ -85,6 +86,7 @@ class GameController:
         # 清理使用过的数据
         self.selected_tag = 0
         self.move_list.clear()
+        self._step_num += 1
         win, player = self.game.has_winner()
         if win:
             self.game_view.show_game_end(player)
@@ -94,6 +96,7 @@ class GameController:
     def _game_begin(self, is_ai_first):
         self._is_game_begin = True
         if is_ai_first:
+            self._ai_core.is_first = True
             self._ai_core.ai_camp = 1
             self._ai_go_if_need()
         else:
@@ -110,8 +113,9 @@ class GameController:
                 board_info = {
                     "board": self.game.chess_board,
                     "red_num": 12,
-                    "blue_num": 12
+                    "blue_num": 12,
                 }
+            board_info.update({"step_num": self._step_num})
             self._ai_core.playing(board_info, self._ai_go)
 
     def _ai_go(self, info: dict):

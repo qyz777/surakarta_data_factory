@@ -6,24 +6,27 @@ import random
 
 sys.setrecursionlimit(1000000)
 
-SEARCH_DEPTH = 5 # 1-6层之内可以接受
-SEARCH_TYPE = 1
-SEARCH_WIN_WEIGHT = 50
+
+class SearchConfig(object):
+    depth = 5    # 1-6层之内可以接受
+    win_weight = 50
+    use_filter = False  # 过滤掉部分下棋位置
 
 
 class Search(object):
 
-    def __init__(self, game_info: dict, ai_camp: int):
+    def __init__(self, game_info: dict, ai_camp: int, config: SearchConfig):
         self._ai_camp = ai_camp
         self._game = game.Game(self._ai_camp, is_debug=False, game_info=game_info)
+        self._config = config
 
     def start(self) -> dict:
         """
-        点火
+        开始搜索
         开始进行α-β搜索，搜不到就随机选一步
         :return: 着法
         """
-        if SEARCH_TYPE == 0:
+        if self._config.use_filter:
             value, action = self._min_max_search_1(self._ai_camp)
         else:
             value, action = self._min_max_search_2(self._ai_camp)
@@ -108,10 +111,10 @@ class Search(object):
         win, camp = self._game.has_winner()
         if win:
             if camp == -self._ai_camp:
-                return (10 - depth) * SEARCH_WIN_WEIGHT, None
+                return (10 - depth) * self._config.win_weight, None
             else:
-                return (-10 + depth) * SEARCH_WIN_WEIGHT, None
-        elif depth == SEARCH_DEPTH:
+                return (-10 + depth) * self._config.win_weight, None
+        elif depth == self._config.depth:
             return self._chess_board_value(camp), None
 
         all_moves = self._game.get_moves()
@@ -172,6 +175,7 @@ class Search(object):
     def _filtration(self, move_list: [dict]) -> [dict]:
         """
         过滤不需要的着法
+        目前下棋位置包含吃子的话就把飞吃子的都过滤了
         :param move_list: 着法列表
         :return: 过滤后的着法列表
         """
@@ -207,8 +211,16 @@ class Search(object):
     @jit
     def _chess_board_value(self, camp: int) -> int:
         res = 0
+        my_num = 0
+        other_num = 0
         for row in self._game.chess_board:
             for chess in row:
                 if chess.camp == camp:
                     res += self._chess_value(chess)
+                    my_num += 1
+                elif chess.camp == -camp:
+                    other_num += 1
+        if my_num < other_num:
+            # 糟糕
+            res /= 2
         return res
