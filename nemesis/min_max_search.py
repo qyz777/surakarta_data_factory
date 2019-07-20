@@ -14,7 +14,7 @@ class MinMaxSearch(Search):
         super().__init__(game_info, ai_camp, config)
 
     def _find_best_action(self) -> (int, dict):
-        return self._min_max_search(self.ai_camp)
+        return self._min_max_search(self._ai_camp)
 
     def _min_max_search(self, player: int, memo: dict = None, depth: int = 0) -> (int, dict):
         """
@@ -31,31 +31,31 @@ class MinMaxSearch(Search):
         best_value: int = None
         best_action: dict = None
 
-        win, camp = self.game.has_winner()
+        win, camp = self._game.has_winner()
         if win:
-            if camp == -self.ai_camp:
+            if camp == -self._ai_camp:
                 return 10 - depth, None
             else:
                 return -10 + depth, None
 
-        all_moves = self.game.get_moves()
+        all_moves = self._game.get_moves()
         all_moves = self.filtration(all_moves)
         for action in all_moves:
             key_1, key_2 = self._get_two_key(action)
             if key_1 in memo or key_2 in memo:
                 continue
-            self.game.do_move(action)
+            self._game.do_move(action)
             memo[key_1] = 1
             memo[key_2] = 1
             value, _ = self._min_max_search(-player, memo, depth + 1)
-            self.game.cancel_move()
+            self._game.cancel_move()
             # value有可能为空，说明此时没有着法了
             if value is None:
                 continue
             if best_value is None:
                 best_value, best_action = value, action
             else:
-                if player == self.ai_camp:
+                if player == self._ai_camp:
                     # 对于我方来说，要选择value最大的
                     if value > best_value:
                         best_value, best_action = value, action

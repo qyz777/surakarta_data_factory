@@ -16,9 +16,9 @@ class SearchConfig(object):
 class Search(object):
 
     def __init__(self, game_info: dict, ai_camp: int, config: SearchConfig):
-        self.ai_camp = ai_camp
-        self.game = game.Game(self.ai_camp, is_debug=False, game_info=game_info)
-        self.config = config
+        self._ai_camp = ai_camp
+        self._game = game.Game(self._ai_camp, is_debug=False, game_info=game_info)
+        self._config = config
 
     def start(self) -> dict:
         """
@@ -30,7 +30,7 @@ class Search(object):
         print("α-β剪枝搜索完成 value:%d" % value)
         if action is None:
             print("搜索错误，随机走一步")
-            all_moves = self.game.get_moves()
+            all_moves = self._game.get_moves()
             move = None
             for m in all_moves:
                 if m["to"].tag != 0:
