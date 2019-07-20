@@ -85,13 +85,9 @@ class Game(object):
         short_b.camp = short_camp
         self._board[can_move.x][can_move.y] = short_b
         new_board = copy.deepcopy(self._board)
-        if self.last_board_info is None:
-            record_board = new_board
-        else:
-            record_board = self.last_board_info["board"]
         # 棋盘记录信息
         self._board_record_list.append({
-            "board": self._zip_board(record_board),
+            "board": new_board,
             "camp": self._camp,
             "red_num": self._red,
             "blue_num": self._blue,
@@ -102,12 +98,7 @@ class Game(object):
             "to_y": can_move.y
         })
         # 棋盘信息
-        self._game_info_list.append({
-            "board": new_board,
-            "camp": self._camp,
-            "red_num": self._red,
-            "blue_num": self._blue
-        })
+        self._game_info_list.append(copy.deepcopy(info))
         # 修改阵营
         self._camp = -self._camp
         if self._is_debug:
@@ -122,18 +113,38 @@ class Game(object):
         """
         撤回上一步
         """
-        if len(self._game_info_list) < 0:
+        if len(self._game_info_list) == 0:
             return
-        elif len(self._game_info_list) == 1:
-            self.reset_board()
-            return
-        self._game_info_list.pop()
-        last_game_info = self._game_info_list[-1]
-        self._board = copy.deepcopy(last_game_info["board"])
         self._camp = -self._camp
-        self._red = last_game_info["red_num"]
-        self._blue = last_game_info["blue_num"]
+        last_game_info = self._game_info_list.pop()
+        to_chess = last_game_info["from"]
+        from_chess = last_game_info["to"]
+
+        if from_chess.camp == -1:
+            # 说明上一步红方被吃
+            self._red += 1
+        elif from_chess.camp == 1:
+            # 说明上一步蓝方被吃
+            self._blue += 1
+        # 交换tag和camp
+        tmp_tag = from_chess.tag
+        tmp_camp = from_chess.camp
+        from_chess.tag = to_chess.tag
+        from_chess.camp = to_chess.camp
+        to_chess.camp = tmp_camp
+        to_chess.tag = tmp_tag
+
+        self._board[from_chess.x][from_chess.y].camp = to_chess.camp
+        self._board[from_chess.x][from_chess.y].tag = to_chess.tag
+        self._board[to_chess.x][to_chess.y].camp = from_chess.camp
+        self._board[to_chess.x][to_chess.y].tag = from_chess.tag
+
         if self._is_debug:
+            print("{tag}:{from_x},{from_y}->{to_x},{to_y}".format(tag=from_chess.tag,
+                                                                  from_x=from_chess.x,
+                                                                  from_y=from_chess.y,
+                                                                  to_x=to_chess.x,
+                                                                  to_y=to_chess.y))
             self.debug_print()
 
     def has_winner(self) -> (bool, int):
@@ -183,18 +194,9 @@ class Game(object):
 
     @property
     def last_board_info(self) -> dict:
-        """
-        上一个棋盘的数据结构
-        {
-            "board": 棋盘数据结构(元素是Chess),
-            "camp": 阵营,
-            "red_num": 红方棋子数量,
-            "blue_num": 蓝方棋子数量
-        }
-        """
-        if len(self._game_info_list) == 0:
+        if len(self._board_record_list) == 0:
             return None
-        return self._game_info_list[-1]
+        return self._board_record_list[-1]
 
     # 根据传参信息初始化棋盘
     def _setup_board(self, info: dict):
