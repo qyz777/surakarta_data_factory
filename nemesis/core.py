@@ -1,5 +1,6 @@
 from nemesis.db import DB
-from nemesis.search import Search, SearchConfig
+from nemesis.search import SearchConfig
+from nemesis.min_max_search import MinMaxSearch
 from nemesis.tactics import Tactics
 from surakarta.chess import Chess
 from surakarta.game import Game
@@ -12,6 +13,7 @@ class Core(object):
     def __init__(self):
         self.ai_camp = -1
         self._is_use_db = False
+        self._is_use_tactics = False
         self.is_first = False
 
     def playing(self, game_info: dict, callback):
@@ -27,11 +29,12 @@ class Core(object):
 
     def _playing(self, game_info: dict, callback):
         step_num = game_info["step_num"] / 2
-        if self.is_first and step_num < 3:
-            tactic = Tactics.pre_tactic(game_info["board"], step_num)
-            if tactic is not None:
-                callback(tactic)
-                return
+        if self._is_use_tactics:
+            if self.is_first and step_num < 3:
+                tactic = Tactics.pre_tactic(game_info["board"], step_num)
+                if tactic is not None:
+                    callback(tactic)
+                    return
 
         db = DB(self.ai_camp)
         info = {"chess_num": game_info["red_num"] + game_info["blue_num"],
@@ -42,8 +45,8 @@ class Core(object):
             d = self._setup_chess_from_row(result, game_info["board"])
         if d is None:
             print("选择α-β剪枝搜索")
-            config = self._get_search_config(step_num)
-            search = Search(game_info, self.ai_camp, config)
+            config = self._get_search_config()
+            search = MinMaxSearch(game_info, self.ai_camp, config)
             move = search.start()
             callback(move)
         else:
@@ -76,7 +79,7 @@ class Core(object):
         return ",".join(zip_list)
 
     @staticmethod
-    def _get_search_config(step_num: int) -> SearchConfig:
+    def _get_search_config() -> SearchConfig:
         config = SearchConfig()
-        config.use_filter = True
+        config.use_filter = False
         return config
