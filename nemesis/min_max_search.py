@@ -1,9 +1,7 @@
 from surakarta import game
 from surakarta.chess import Chess
 from nemesis.search import Search, SearchConfig
-from numba import jit
 import sys
-import random
 
 sys.setrecursionlimit(1000000)
 

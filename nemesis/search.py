@@ -1,16 +1,24 @@
 from surakarta import game
 from surakarta.chess import Chess
 from numba import jit
+from enum import Enum
 import sys
 import random
 
 sys.setrecursionlimit(1000000)
 
 
+class SearchType(Enum):
+    MIN_MAX = 0  # 极大极小搜索
+    DEPTH = 1  # 迭代加深搜索
+
+
 class SearchConfig(object):
-    depth = 2    # 1-6层之内可以接受
+    depth = 5  # 1-6层之内可以接受
     win_weight = 50
     use_filter = False  # 过滤掉部分下棋位置
+    search_time = 30  # 最长搜索时间
+    search_type = SearchType.MIN_MAX  # 搜索类型
 
 
 class Search(object):

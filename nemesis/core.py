@@ -1,6 +1,6 @@
 from nemesis.db import DB
-from nemesis.search import SearchConfig
-from nemesis.min_max_search import MinMaxSearch
+from nemesis.search import SearchConfig, SearchType
+from nemesis.build_search import build
 from nemesis.tactics import Tactics
 from surakarta.chess import Chess
 from surakarta.game import Game
@@ -46,7 +46,7 @@ class Core(object):
         if d is None:
             print("选择α-β剪枝搜索")
             config = self._get_search_config()
-            search = MinMaxSearch(game_info, self.ai_camp, config)
+            search = build(game_info, self.ai_camp, config)
             move = search.start()
             callback(move)
         else:
@@ -82,4 +82,5 @@ class Core(object):
     def _get_search_config() -> SearchConfig:
         config = SearchConfig()
         config.use_filter = False
+        config.search_type = SearchType.DEPTH
         return config
