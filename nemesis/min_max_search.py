@@ -37,7 +37,7 @@ class MinMaxSearch(Search):
                 return -10 + depth, None
 
         all_moves = self._game.get_moves()
-        all_moves = self.filtration(all_moves)
+        all_moves = self._filtration(all_moves)
         for action in all_moves:
             key_1, key_2 = self._get_two_key(action)
             if key_1 in memo or key_2 in memo:
@@ -82,7 +82,7 @@ class MinMaxSearch(Search):
                                                                 to_y=action["to"].y)
         return str_1, str_2
 
-    def filtration(self, move_list: [dict]) -> [dict]:
+    def _filtration(self, move_list: [dict]) -> [dict]:
         """
         过滤不需要的着法
         目前下棋位置包含吃子的话就把飞吃子的都过滤了

@@ -57,7 +57,7 @@ class Search(object):
         pass
 
     @jit
-    def filtration(self, move_list: [dict]) -> [dict]:
+    def _filtration(self, move_list: [dict]) -> [dict]:
         """
         重写此方法添加过滤器
         :param move_list: 过滤后的着法
