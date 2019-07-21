@@ -7,9 +7,10 @@ import time
 sys.setrecursionlimit(1000000)
 
 # 参考 https://www.cnblogs.com/royhoo/p/6425761.html
-# todo: 还需要优化评估值，优化使用时间
+# todo: 还需要优化评估值，优化使用时间，使用百分比估值，增加下棋随机性
+# 百分比估值即 一方评估值/双方评估值之和
 
-META_VALUE = 960  # 评估值总和
+META_VALUE = 840  # 评估值总和，计算方式为所有棋子能占据的最大和
 NULL_DEPTH = 2  # 空着搜索需要减去的深度值
 
 
@@ -20,10 +21,11 @@ class DepthSearch(Search):
         self._history_table = {}
         self._distance = 0  # 水平线
         self._repeat_step = {}  # 重复局面
+        self._use_percent = self._game.chess_num < 24  # 是否使用百分比估值
         value = 0
         now = time.time()
         for i in range(1, self._config.depth):
-            value = self._alpha_beta_search(-META_VALUE, META_VALUE, i)
+            value = self._alpha_beta_search(-self._percent(META_VALUE), self._percent(META_VALUE), i)
             print("depth: %d, value: %d" % (i, value))
             search_time = time.time()
             if search_time - now > 30:
@@ -61,13 +63,13 @@ class DepthSearch(Search):
 
         # 搜索结束返回
         if depth == 0:
-            return self._chess_board_value(self._ai_camp)
+            return self._get_real_chess_board_value()
         win, _ = self._game.has_winner()
         if win:
-            return self._chess_board_value(self._ai_camp)
+            return self._get_real_chess_board_value()
 
         best_move_action = None
-        best_value = -META_VALUE
+        best_value = -self._percent(META_VALUE)
 
         all_moves = self._game.get_moves()  # 获取所有下棋招法
         all_moves = self._sort_all_moves(all_moves)  # 按照历史表排序
@@ -90,8 +92,8 @@ class DepthSearch(Search):
                     if self._distance == 0:
                         self._best_action = action
 
-        if best_value == -META_VALUE:
-            return self._distance - META_VALUE
+        if best_value == -self._percent(META_VALUE):
+            return self._percent(self._distance - META_VALUE)
 
         if best_move_action is not None:
             self._update_history_table(best_move_action, depth)
@@ -106,7 +108,7 @@ class DepthSearch(Search):
         :return: 最大估值
         """
         self._fly_best_value = alpha
-        value = self._distance - META_VALUE
+        value = self._percent(self._distance - META_VALUE)
         if value >= beta:
             return value
         # 检查重复局面
@@ -114,16 +116,13 @@ class DepthSearch(Search):
         if repeat_value > 0:
             # 重复局面直接取出value返回
             return repeat_value
-        # 检查是否有输赢
+        # 检查是否有输赢或检查是否超出最大搜索深度(暂时就先写个32)
         win, _ = self._game.has_winner()
-        if win:
-            return self._chess_board_value(self._ai_camp)
-        # 检查是否超出最大搜索深度，暂时就先写个32吧
-        if self._distance >= 32:
-            return self._chess_board_value(self._ai_camp)
+        if win or self._distance >= 32:
+            return self._get_real_chess_board_value()
 
-        best_value = -META_VALUE
-        value = self._chess_board_value(self._ai_camp)
+        best_value = -self._percent(META_VALUE)
+        value = self._get_real_chess_board_value()
         if value > best_value:
             if value > beta:
                 return value
@@ -145,7 +144,7 @@ class DepthSearch(Search):
                 best_value = value
                 self._fly_best_value = max(value, self._fly_best_value)
 
-        return self._distance - META_VALUE if best_value == -META_VALUE else best_value
+        return self._percent(self._distance - META_VALUE) if best_value == -self._percent(META_VALUE) else best_value
 
     def _sort_all_moves(self, all_moves: [dict]):
         def take_second(e):
@@ -187,6 +186,26 @@ class DepthSearch(Search):
                 chess_list.append(str(c.camp))
         chess_list_str = ",".join(chess_list)
         return self._repeat_step[chess_list_str] if self._repeat_step.get(chess_list_str) else 0
+
+    def _get_real_chess_board_value(self):
+        """
+        得到棋盘评估值，在百分比估值下和绝对值估值下返回不同
+        :return: 估值
+        """
+        if self._use_percent:
+            my_score = self._chess_board_value(self._ai_camp)
+            other_score = self._chess_board_value(-self._ai_camp)
+            return self._percent(my_score, my_score + other_score)
+        else:
+            return self._chess_board_value(self._ai_camp)
+
+    def _percent(self, value=None, sum_value=0) -> float or int:
+        if -1 <= value <= 1:
+            raise RuntimeError("百分比数据出现问题!!!")
+        if self._use_percent:
+            return value / META_VALUE if sum_value == 0 else value / sum_value
+        else:
+            return value
 
     def _filtration(self, move_list: [dict]) -> [dict]:
         fly_move_list = []
