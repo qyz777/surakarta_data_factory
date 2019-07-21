@@ -7,9 +7,10 @@ import time
 sys.setrecursionlimit(1000000)
 
 # 参考 https://www.cnblogs.com/royhoo/p/6425761.html
-# todo: 还需要优化评估值、完善空着、置换表
+# todo: 还需要优化评估值，优化使用时间
 
 META_VALUE = 960  # 评估值总和
+NULL_DEPTH = 2  # 空着搜索需要减去的深度值
 
 
 class DepthSearch(Search):
@@ -20,16 +21,16 @@ class DepthSearch(Search):
         self._distance = 0  # 水平线
         self._repeat_step = {}  # 重复局面
         value = 0
-        # now = time.time()
+        now = time.time()
         for i in range(1, self._config.depth):
             value = self._alpha_beta_search(-META_VALUE, META_VALUE, i)
             print("depth: %d, value: %d" % (i, value))
-            # search_time = time.time()
-            # if search_time - now > 30:
-            #     break
+            search_time = time.time()
+            if search_time - now > 30:
+                break
         return value, self._best_action
 
-    def _alpha_beta_search(self, alpha: int, beta: int, depth: int = 5) -> int:
+    def _alpha_beta_search(self, alpha: int, beta: int, depth: int = 5, null: bool = False) -> int:
         """
         α-β搜索，搜到一个深度就会停止
         :param alpha: 初始要取负无穷，表示当前搜索节点走棋一方搜索到的最好值
@@ -48,6 +49,15 @@ class DepthSearch(Search):
             if repeat_value > 0:
                 # 重复局面直接取出value返回
                 return repeat_value
+            if null and self._game.chess_num <= 12:
+                # 执行空着，目的是确认我方是否优势
+                # 残局时不进入，阈值为棋子总和小于等于12
+                self._game.do_null_move()
+                null_value = -self._alpha_beta_search(-beta, 1 - beta, depth - NULL_DEPTH - 1)
+                self._game.cancel_null_move()
+                if null_value >= beta or \
+                        self._alpha_beta_search(alpha, beta, depth - NULL_DEPTH) >= beta:
+                    return null_value
 
         # 搜索结束返回
         if depth == 0:
@@ -65,7 +75,7 @@ class DepthSearch(Search):
         for action in all_moves:
             self._game.do_move(action)  # 执行招法
             self._distance += 1
-            value = -self._alpha_beta_search(-beta, -self._step_best_value, depth - 1)
+            value = -self._alpha_beta_search(-beta, -self._step_best_value, depth - 1, True)
             self._game.cancel_move()  # 撤回招法
             self._distance -= 1
 
