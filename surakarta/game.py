@@ -147,6 +147,20 @@ class Game(object):
                                                                   to_y=to_chess.y))
             self.debug_print()
 
+    def do_null_move(self):
+        """
+        执行空着
+        :return:
+        """
+        self._camp = -self._camp
+
+    def cancel_null_move(self):
+        """
+        取消空着
+        :return:
+        """
+        self._camp = -self._camp
+
     def has_winner(self) -> (bool, int):
         """
         return 是否胜利 camp
