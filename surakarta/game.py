@@ -35,6 +35,12 @@ class Game(object):
                 break
         return self._board_record_list, winner
 
+    def set_camp(self, camp):
+        """
+        设置当前的下棋的阵营
+        """
+        self._camp = camp
+
     def reset_board(self):
         """
         重置棋盘
