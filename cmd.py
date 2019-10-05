@@ -1,45 +1,60 @@
-from surakarta.game import Game
-from surakarta.chess import Chess
-from nemesis.core import Core
+import logging
 import socket
 
+from nemesis.core import Core
+from surakarta.chess import Chess
+from surakarta.game import Game
 
-AI_CAMP = 1
+AI_CAMP = -1
 host_name = "localhost"
-port = 1024
+port = 8999
 
 
 class Cmd(object):
 
     def __init__(self, ai_camp: int):
-        self._ai_camp = ai_camp
-        self._game = Game(self._ai_camp, is_debug=True)
+        self._game = Game(ai_camp, is_debug=True)
         self._game.reset_board()
         self._ai_core = Core()
-        self._ai_core.ai_camp = self._ai_camp
+        self._ai_core.ai_camp = ai_camp
         self.step_num = 0
         self.socket = socket.socket()
         self.socket.connect((host_name, port))
 
     def start(self):
         is_ai_first = False
+
         while True:
             msg = self.socket.recv(2048).decode()
+
             if len(msg) == 1:
                 is_ai_first = True
+                self._ai_core.is_first = True
+                self._ai_core.ai_camp = 1
+                self._game.set_camp(1)
+
             if is_ai_first:
                 is_ai_first = False
                 self._ai_go()
-            chess_list = msg.split(" ")
-            if len(chess_list) != 4:
-                print("⚠️ 输入错误: 缺少输入参数")
                 continue
+
+            chess_list = msg.split(" ")
+
+            if len(chess_list) != 4:
+                print(msg)
+                print("⚠️ 输入错误: 缺少输入参数")
+
+                continue
+
             for i in range(len(chess_list)):
                 chess_list[i] = int(chess_list[i])
             from_chess = self.find_chess(chess_list[1], chess_list[0])
             to_chess = self.find_chess(chess_list[3], chess_list[2])
+
             if from_chess.tag == 0:
+                logging.error(msg)
                 print("⚠️ 输入错误: 输入位置错误")
+
                 continue
             info = {"from": from_chess, "to": to_chess}
             self._game.do_move(info)

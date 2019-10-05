@@ -2,4 +2,5 @@
 *.pyc
 venv/
 *.db
+*.vscode
 *.txt
