@@ -151,14 +151,14 @@ class GameView(QWidget):
 
     @pyqtSlot()
     def _click_begin_button(self):
+        self._player = 1
+        self._timer.start()
         self.begin_button.setEnabled(False)
         self.ai_radio.setEnabled(False)
         self.human_radio.setEnabled(False)
         self.first_human_radio.setEnabled(False)
         self.first_ai_radio.setEnabled(False)
         self.game_begin_callback(self._is_ai_first_go)
-        self._player = 1
-        self._timer.start()
 
     @pyqtSlot()
     def _select_first_radio(self):
