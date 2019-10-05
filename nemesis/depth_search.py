@@ -200,8 +200,6 @@ class DepthSearch(Search):
             return self._chess_board_value(self._ai_camp)
 
     def _percent(self, value=None, sum_value=0) -> float or int:
-        if -1 <= value <= 1:
-            raise RuntimeError("百分比数据出现问题!!!")
         if self._use_percent:
             return value / META_VALUE if sum_value == 0 else value / sum_value
         else:
