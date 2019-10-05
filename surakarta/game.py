@@ -70,6 +70,7 @@ class Game(object):
         tread = info['from']
         can_move = info['to']
         tag = tread.tag
+        is_attack = True if can_move.tag > 0 else False
         short_a = self._board[tread.x][tread.y]
         short_camp = short_a.camp
         short_a.tag = 0
@@ -95,7 +96,8 @@ class Game(object):
             "from_x": tread.x,
             "from_y": tread.y,
             "to_x": can_move.x,
-            "to_y": can_move.y
+            "to_y": can_move.y,
+            "is_attack": is_attack
         })
         # 棋盘信息
         self._game_info_list.append(copy.deepcopy(info))
@@ -211,6 +213,10 @@ class Game(object):
         if len(self._board_record_list) == 0:
             return None
         return self._board_record_list[-1]
+
+    @property
+    def record_info_list(self) -> [dict]:
+        return copy.deepcopy(self._board_record_list)
 
     # 根据传参信息初始化棋盘
     def _setup_board(self, info: dict):

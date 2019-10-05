@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QGridLayout
 from surakarta.game import Game
 from nemesis.core import Core
 import copy
+import datetime
 
 
 class GameController:
@@ -34,6 +35,7 @@ class GameController:
         self.game_view.chess_move_callback = self._chess_did_move
         self.game_view.game_begin_callback = self._game_begin
         self.game_view.change_mode_callback = self._change_game_mode
+        self.game_view.gen_callback = self._gen_chess_board_info
 
     def _did_click_btn(self, tag):
         if self._is_game_begin is False:
@@ -104,6 +106,25 @@ class GameController:
 
     def _change_game_mode(self, mode):
         self._is_ai_mode = mode == 2
+
+    def _gen_chess_board_info(self):
+        """生成棋谱"""
+        date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        begin_board = "!BBBBBB\n!BBBBBB\n!000000\n!000000\n!RRRRRR\n!RRRRRR\n"
+        place = "北京"
+        with open("info.txt", "a") as file:
+            file.write("#" + date + "|" + place + "\n")
+            file.write(begin_board)
+            info_list = self.game.record_info_list
+            line_number = ["A", "B", "C", "D", "E", "F"]
+            for info in info_list:
+                line = "B" if info["camp"] == -1 else "R"
+                line += str(info["from_x"]) + line_number[info["from_y"]]
+                line += "x" if info["is_attack"] is True else "-"
+                line += str(info["to_x"]) + line_number[info["to_y"]]
+                line += "\n"
+                file.write(line)
+            file.close()
 
     def _ai_go_if_need(self):
         if self._is_ai_go():

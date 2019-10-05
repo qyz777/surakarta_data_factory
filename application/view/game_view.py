@@ -20,6 +20,7 @@ class GameView(QWidget):
         self.chess_move_callback = None
         self.game_begin_callback = None
         self.change_mode_callback = None
+        self.gen_callback = None
         self.targets = []
         self.chess_list = []
         self._player = -1
@@ -48,20 +49,27 @@ class GameView(QWidget):
         first_button_group.addButton(self.first_ai_radio, 2)
         first_button_group.buttonClicked.connect(self._select_first_radio)
         self.begin_button = QPushButton(self)
-        self.begin_button.setStyleSheet("border-radius: 10; background-color: white; color: black")
+        self.begin_button.setStyleSheet("QPushButton{border-radius: 10; background-color: white; color: black;}"
+                                        "QPushButton:hover{background-color: lightgray}")
         self.begin_button.setText("开始")
         self.begin_button.setGeometry(INTERVAL * 10, 70, 200, 25)
         self.begin_button.clicked.connect(self._click_begin_button)
+        self.gen_button = QPushButton(self)
+        self.gen_button.setStyleSheet("QPushButton{border-radius: 10; background-color: white; color: black;}"
+                                      "QPushButton:hover{background-color: lightgray}")
+        self.gen_button.setText("生成棋谱")
+        self.gen_button.setGeometry(INTERVAL * 10, 100, 200, 25)
+        self.gen_button.clicked.connect(self._click_gen_button)
         self.red_time_label = QLabel(self)
         self.red_time_label.setText("00:00")
         self.red_time_label.setStyleSheet("color: red")
-        self.red_time_label.setGeometry(INTERVAL * 10, 100, 100, 25)
+        self.red_time_label.setGeometry(INTERVAL * 10, 130, 100, 25)
         self.blue_time_label = QLabel(self)
         self.blue_time_label.setText("00:00")
         self.blue_time_label.setStyleSheet("color: blue")
-        self.blue_time_label.setGeometry(INTERVAL * 10 + 100, 100, 100, 25)
+        self.blue_time_label.setGeometry(INTERVAL * 10 + 100, 130, 100, 25)
         self.list_widget = QListWidget(self)
-        self.list_widget.setGeometry(INTERVAL * 10, 130, 200, 300)
+        self.list_widget.setGeometry(INTERVAL * 10, 160, 200, 300)
 
     def _init_timer(self):
         self._red_time = 0
@@ -117,6 +125,10 @@ class GameView(QWidget):
                                                                 ty=t[1])
         item = QListWidgetItem(text)
         self.list_widget.addItem(item)
+
+    @pyqtSlot()
+    def _click_gen_button(self):
+        self.gen_callback()
 
     @pyqtSlot()
     def _click_btn(self):
