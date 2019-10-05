@@ -13,7 +13,7 @@ class Core(object):
     def __init__(self):
         self.ai_camp = -1
         self._is_use_db = False
-        self._is_use_tactics = False
+        self._is_use_tactics = True
         self.is_first = False
 
     def playing(self, game_info: dict, callback):
@@ -80,7 +80,11 @@ class Core(object):
 
     @staticmethod
     def _get_search_config() -> SearchConfig:
+        """
+        这里改AI搜索配置!
+        :return: 搜索配置
+        """
         config = SearchConfig()
-        config.use_filter = False
+        config.use_filter = True
         config.search_type = SearchType.DEPTH
         return config

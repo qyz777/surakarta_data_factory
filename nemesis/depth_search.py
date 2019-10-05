@@ -7,7 +7,7 @@ import time
 sys.setrecursionlimit(1000000)
 
 # 参考 https://www.cnblogs.com/royhoo/p/6425761.html
-# todo: 还需要优化评估值，优化使用时间，使用百分比估值，增加下棋随机性
+# todo: 还需要优化评估值，优化使用时间，增加下棋随机性
 # 百分比估值即 一方评估值/双方评估值之和
 
 META_VALUE = 840  # 评估值总和，计算方式为所有棋子能占据的最大和
@@ -21,14 +21,17 @@ class DepthSearch(Search):
         self._history_table = {}
         self._distance = 0  # 水平线
         self._repeat_step = {}  # 重复局面
-        self._use_percent = self._game.chess_num < 24  # 是否使用百分比估值
+        self._use_percent = self._game.red_chess_num != self._game.blue_chess_num  # 是否使用百分比估值
+        if self._use_percent:
+            print("棋子数量不平衡，使用百分比估值")
         value = 0
         now = time.time()
         for i in range(1, self._config.depth):
             value = self._alpha_beta_search(-self._percent(META_VALUE), self._percent(META_VALUE), i)
             print("depth: %d, value: %d" % (i, value))
             search_time = time.time()
-            if search_time - now > 30:
+            # 判断当前这步是否超时(这里其实不准确，but大概这样就行了)
+            if search_time - now >= self._config.search_time:
                 break
         return value, self._best_action
 
@@ -72,6 +75,7 @@ class DepthSearch(Search):
         best_value = -self._percent(META_VALUE)
 
         all_moves = self._game.get_moves()  # 获取所有下棋招法
+        all_moves = self._filter_walk_step_if_need(all_moves)
         all_moves = self._sort_all_moves(all_moves)  # 按照历史表排序
 
         for action in all_moves:
@@ -212,6 +216,24 @@ class DepthSearch(Search):
                 fly_move_list.append(move)
         if len(fly_move_list) == 0:
             return []
+        else:
+            return fly_move_list
+
+    def _filter_walk_step_if_need(self, move_list: [dict]) -> [dict]:
+        """
+        如果开启配置，则把walk类型的着法去除
+        前提是有吃子着法
+        :param move_list: 着法列表
+        :return: 着法列表
+        """
+        if not self._config.use_filter:
+            return move_list
+        fly_move_list = []
+        for move in move_list:
+            if move["to"].tag != 0:
+                fly_move_list.append(move)
+        if len(fly_move_list) == 0:
+            return move_list
         else:
             return fly_move_list
 

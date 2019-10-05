@@ -208,6 +208,14 @@ class Game(object):
         return self._red + self._blue
 
     @property
+    def red_chess_num(self):
+        return self._red
+
+    @property
+    def blue_chess_num(self):
+        return self._blue
+
+    @property
     def chess_board(self):
         """
         棋盘数据结构
@@ -250,9 +258,16 @@ class Game(object):
         return new_board
 
     def debug_print(self):
+        def _chess_name(camp) -> str:
+            if camp == 0:
+                return "*"
+            return "B" if camp == -1 else "R"
+        print("%6s %2s %2s %2s %2s %2s" % ("A", "B", "C", "D", "E", "F"))
+        print("   ------------------")
         for i in range(0, 6):
-            print("%8s %8s %8s %8s %8s %8s" % (
-                str(self._board[i][0].camp), str(self._board[i][1].camp),
-                str(self._board[i][2].camp), str(self._board[i][3].camp),
-                str(self._board[i][4].camp), str(self._board[i][5].camp)))
+            print("%s %2s %2s %2s %2s %2s %2s" % (
+                str(i + 1) + " |",
+                _chess_name(self._board[i][0].camp), _chess_name(self._board[i][1].camp),
+                _chess_name(self._board[i][2].camp), _chess_name(self._board[i][3].camp),
+                _chess_name(self._board[i][4].camp), _chess_name(self._board[i][5].camp)))
         print("\n")

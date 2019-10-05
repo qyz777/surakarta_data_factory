@@ -86,6 +86,7 @@ class Cmd(object):
 
     def _ai_move_callback(self, info: dict):
         self._game.do_move(info)
+        self.step_num += 1
         output = '''{x1} {y1} {x2} {y2}'''.format(x1=str(info["from"].y),
                                                   y1=str(info["from"].x),
                                                   x2=str(info["to"].y),
