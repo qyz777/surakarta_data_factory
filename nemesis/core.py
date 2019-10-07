@@ -1,4 +1,3 @@
-from nemesis.db import DB
 from nemesis.search import SearchConfig, SearchType
 from nemesis.build_search import build
 from nemesis.tactics import Tactics
@@ -12,7 +11,6 @@ class Core(object):
 
     def __init__(self):
         self.ai_camp = -1
-        self._is_use_db = False
         self._is_use_tactics = True
         self.is_first = False
 
@@ -40,23 +38,10 @@ class Core(object):
                 if tactic is not None:
                     callback(tactic)
                     return
-
-        db = DB(self.ai_camp)
-        info = {"chess_num": game_info["red_num"] + game_info["blue_num"],
-                "board": self._zip_board(game_info["board"])}
-        d = None
-        if self._is_use_db:
-            result = db.select_go(info)
-            d = self._setup_chess_from_row(result, game_info["board"])
-        if d is None:
-            print("选择α-β剪枝搜索")
-            config = self._get_search_config()
-            search = build(game_info, self.ai_camp, config)
-            move = search.start()
-            callback(move)
-        else:
-            print("选择数据库搜索")
-            callback(d)
+        config = self._get_search_config()
+        search = build(game_info, self.ai_camp, config)
+        move = search.start()
+        callback(move)
 
     @staticmethod
     def _setup_chess_from_row(row: tuple, board: [[Chess]]) -> dict:
