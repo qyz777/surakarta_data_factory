@@ -28,10 +28,15 @@ class Core(object):
         thread.start()
 
     def _playing(self, game_info: dict, callback):
-        step_num = game_info["step_num"] / 2
+        step_num = int(game_info["step_num"] / 2)
         if self._is_use_tactics:
             if self.is_first and step_num < 3:
                 tactic = Tactics.pre_tactic(game_info["board"], step_num)
+                if tactic is not None:
+                    callback(tactic)
+                    return
+            elif not self.is_first and step_num < 3:
+                tactic = Tactics.post_tactic(game_info["board"], step_num)
                 if tactic is not None:
                     callback(tactic)
                     return
