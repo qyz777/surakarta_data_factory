@@ -3,11 +3,12 @@ from surakarta.chess import Chess
 from nemesis.search import Search, SearchConfig
 import sys
 import time
+import random
+from numba import jit
 
 sys.setrecursionlimit(1000000)
 
 # 参考 https://www.cnblogs.com/royhoo/p/6425761.html
-# todo: 还需要优化评估值，优化使用时间，增加下棋随机性
 # 百分比估值即 一方评估值/双方评估值之和
 
 META_VALUE = 840  # 评估值总和，计算方式为所有棋子能占据的最大和
@@ -22,19 +23,23 @@ class DepthSearch(Search):
         self._distance = 0  # 水平线
         self._repeat_step = {}  # 重复局面
         self._use_percent = self._game.red_chess_num != self._game.blue_chess_num  # 是否使用百分比估值
+        self._use_random = self._game.red_chess_num == self._game.blue_chess_num  # 是否使用随机性
         if self._use_percent:
             print("棋子数量不平衡，使用百分比估值")
+        if self._use_random:
+            print("棋子数量平衡，增加下棋随机性")
         value = 0
         now = time.time()
         for i in range(1, self._config.depth):
             value = self._alpha_beta_search(-self._percent(META_VALUE), self._percent(META_VALUE), i)
-            print("depth: %d, value: %d" % (i, value))
+            print("depth: %d" % i)
             search_time = time.time()
             # 判断当前这步是否超时(这里其实不准确，but大概这样就行了)
             if search_time - now >= self._config.search_time:
                 break
         return value, self._best_action
 
+    @jit
     def _alpha_beta_search(self, alpha: int, beta: int, depth: int = 5, null: bool = False) -> int:
         """
         α-β搜索，搜到一个深度就会停止
@@ -82,6 +87,8 @@ class DepthSearch(Search):
             self._game.do_move(action)  # 执行招法
             self._distance += 1
             value = -self._alpha_beta_search(-beta, -self._step_best_value, depth - 1, True)
+            if self._use_random:
+                value += self._random_value()
             self._game.cancel_move()  # 撤回招法
             self._distance -= 1
 
@@ -104,6 +111,7 @@ class DepthSearch(Search):
 
         return best_value
 
+    @jit
     def _search_fly(self, alpha: int, beta: int) -> int:
         """
         在搜索的叶子节点之下调用，只搜索吃子着法
@@ -150,21 +158,23 @@ class DepthSearch(Search):
 
         return self._percent(self._distance - META_VALUE) if best_value == -self._percent(META_VALUE) else best_value
 
+    @jit
     def _sort_all_moves(self, all_moves: [dict]):
-        def take_second(e):
-            return e[1]
-
         move_tuple_list = []
         for move in all_moves:
             v = 0
             if self._history_table.get(self._get_key(move)):
                 v = self._history_table.get(self._get_key(move))
             move_tuple_list.append((move, v))
-        move_tuple_list.sort(key=take_second)
+        move_tuple_list.sort(key=self.__take_second)
         sorted_all_moves = []
         for t in move_tuple_list:
             sorted_all_moves.append(t[0])
         return sorted_all_moves
+
+    @staticmethod
+    def __take_second(e):
+        return e[1]
 
     def _update_history_table(self, action: dict, depth: int):
         key = self._get_key(action)
@@ -175,6 +185,7 @@ class DepthSearch(Search):
             key: value + depth * depth
         })
 
+    @jit
     def _update_repeat_step(self, chess_board: [[Chess]], value):
         chess_list = []
         for row in chess_board:
@@ -183,6 +194,7 @@ class DepthSearch(Search):
         chess_list_str = ",".join(chess_list)
         self._repeat_step.update({chess_list_str: value})
 
+    @jit
     def _is_repeat(self, chess_board: [[Chess]]) -> int:
         chess_list = []
         for row in chess_board:
@@ -209,6 +221,16 @@ class DepthSearch(Search):
         else:
             return value
 
+    @staticmethod
+    def _random_value():
+        """
+        棋子数量相等时获取每一个节点估值的随机值
+        -5~5看起来已经很够了
+        :return: 随机值
+        """
+        return random.uniform(-5, 5)
+
+    @jit
     def _filtration(self, move_list: [dict]) -> [dict]:
         fly_move_list = []
         for move in move_list:
@@ -219,6 +241,7 @@ class DepthSearch(Search):
         else:
             return fly_move_list
 
+    @jit
     def _filter_walk_step_if_need(self, move_list: [dict]) -> [dict]:
         """
         如果开启配置，则把walk类型的着法去除

@@ -35,7 +35,7 @@ class Search(object):
         :return: 着法
         """
         value, action = self._find_best_action()
-        print("α-β剪枝搜索完成 value:%d" % value)
+        print("搜索完成 value: %s" % value)
         if action is None:
             print("搜索错误，随机走一步")
             all_moves = self._game.get_moves()
