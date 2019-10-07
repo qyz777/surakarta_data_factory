@@ -6,7 +6,7 @@ from surakarta.chess import Chess
 from surakarta.game import Game
 
 AI_CAMP = -1
-host_name = "localhost"
+host_name = "192.168.199.156"
 port = 8999
 
 
@@ -43,8 +43,7 @@ class Cmd(object):
             if len(chess_list) != 4:
                 print(msg)
                 print("⚠️ 输入错误: 缺少输入参数")
-
-                continue
+                break
 
             for i in range(len(chess_list)):
                 chess_list[i] = int(chess_list[i])
@@ -54,12 +53,12 @@ class Cmd(object):
             if from_chess.tag == 0:
                 logging.error(msg)
                 print("⚠️ 输入错误: 输入位置错误")
-
-                continue
+                break
             info = {"from": from_chess, "to": to_chess}
             self._game.do_move(info)
             self.step_num += 1
             self._ai_go()
+        self.socket.close()
 
     def find_chess(self, x: int, y: int) -> Chess:
         """

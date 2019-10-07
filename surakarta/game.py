@@ -110,11 +110,7 @@ class Game(object):
         # 修改阵营
         self._camp = -self._camp
         if self._is_debug:
-            print("{tag}:{from_x},{from_y}->{to_x},{to_y}".format(tag=info["from"].tag,
-                                                                  from_x=info["from"].x,
-                                                                  from_y=info["from"].y,
-                                                                  to_x=info["to"].x,
-                                                                  to_y=info["to"].y))
+            self._debug_move_print(info["from"], info["to"])
             self.debug_print()
 
     def cancel_move(self):
@@ -148,11 +144,7 @@ class Game(object):
         self._board[to_chess.x][to_chess.y].tag = from_chess.tag
 
         if self._is_debug:
-            print("{tag}:{from_x},{from_y}->{to_x},{to_y}".format(tag=from_chess.tag,
-                                                                  from_x=from_chess.x,
-                                                                  from_y=from_chess.y,
-                                                                  to_x=to_chess.x,
-                                                                  to_y=to_chess.y))
+            self._debug_move_print(from_chess, to_chess)
             self.debug_print()
 
     def do_null_move(self):
@@ -257,11 +249,21 @@ class Game(object):
             new_board.append(new_row)
         return new_board
 
+    @staticmethod
+    def _debug_move_print(from_chess, to_chess):
+        column_list = ["A", "B", "C", "D", "E", "F"]
+        print("tag: {tag}, {from_x},{from_y} -> {to_x},{to_y}".format(tag=from_chess.tag,
+                                                                      from_x=column_list[from_chess.y],
+                                                                      from_y=from_chess.x + 1,
+                                                                      to_x=column_list[to_chess.y],
+                                                                      to_y=to_chess.x + 1))
+
     def debug_print(self):
         def _chess_name(camp) -> str:
             if camp == 0:
                 return "*"
             return "B" if camp == -1 else "R"
+
         print("%6s %2s %2s %2s %2s %2s" % ("A", "B", "C", "D", "E", "F"))
         print("   ------------------")
         for i in range(0, 6):

@@ -41,11 +41,13 @@ class Tactics(object):
             p1 = chess_board[3][0]
             p2 = chess_board[3][2]
             if p1.camp == 1 and p2.camp == 1:
-                return {"from": chess_board[1][0], "to": chess_board[2][1]}
+                if chess_board[1][0].camp != 0 and chess_board[2][1].camp == 0:
+                    return {"from": chess_board[1][0], "to": chess_board[2][1]}
             p1 = chess_board[3][5]
             p2 = chess_board[3][3]
             if p1.camp == 1 and p2.camp == 1:
-                return {"from": chess_board[1][5], "to": chess_board[2][4]}
+                if chess_board[1][5].camp != 0 and chess_board[2][4].camp == 0:
+                    return {"from": chess_board[1][5], "to": chess_board[2][4]}
         elif step_num == 2:
             p1 = chess_board[4][1]
             p2 = chess_board[5][1]

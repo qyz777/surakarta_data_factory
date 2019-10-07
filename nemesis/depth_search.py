@@ -24,12 +24,16 @@ class DepthSearch(Search):
         self._repeat_step = {}  # 重复局面
         self._use_percent = self._game.red_chess_num != self._game.blue_chess_num  # 是否使用百分比估值
         self._use_random = self._game.red_chess_num == self._game.blue_chess_num  # 是否使用随机性
+        self.__search_node = 0
+        self.__search_depth_node = 0
         if self._use_percent:
-            print("棋子数量不平衡，使用百分比估值")
+            print("⚠️棋子数量不平衡，使用百分比估值")
         if self._use_random:
-            print("棋子数量平衡，增加下棋随机性")
+            print("⚠️棋子数量平衡，增加下棋随机性")
+        print("开始迭代加深搜索")
         value = 0
         now = time.time()
+        search_time = 0
         for i in range(1, self._config.depth):
             value = self._alpha_beta_search(-self._percent(META_VALUE), self._percent(META_VALUE), i)
             print("depth: %d" % i)
@@ -37,6 +41,8 @@ class DepthSearch(Search):
             # 判断当前这步是否超时(这里其实不准确，but大概这样就行了)
             if search_time - now >= self._config.search_time:
                 break
+        print("本次搜索耗时: %s秒" % int(search_time - now))
+        print("本次搜索索树节点: %s个，搜索加深节点: %s个" % (self.__search_node, self.__search_depth_node))
         return value, self._best_action
 
     @jit
@@ -49,6 +55,7 @@ class DepthSearch(Search):
         :return: 最大估值
         """
         self._step_best_value = alpha
+        self.__search_node += 1
 
         if self._distance > 0:
             if depth <= 0:
@@ -119,6 +126,7 @@ class DepthSearch(Search):
         :param beta: beta值
         :return: 最大估值
         """
+        self.__search_depth_node += 1
         self._fly_best_value = alpha
         value = self._percent(self._distance - META_VALUE)
         if value >= beta:
