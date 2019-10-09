@@ -36,6 +36,7 @@ class GameController:
         self.game_view.game_begin_callback = self._game_begin
         self.game_view.change_mode_callback = self._change_game_mode
         self.game_view.gen_callback = self._gen_chess_board_info
+        self.game_view.back_callback = self._should_back
 
     def _did_click_btn(self, tag):
         if self._is_game_begin is False:
@@ -125,6 +126,26 @@ class GameController:
                 line += "\n"
                 file.write(line)
             file.close()
+
+    def _should_back(self):
+        """
+        悔棋回调
+        简单处理
+        悔棋接入请在这个方法处理
+        """
+        if self._is_ai_mode:
+            # 1.终止本线程
+            self._ai_core.terminal()
+            # 2.逻辑层悔棋
+            self.game.cancel_move()
+            # 3.交换对手
+            self._player = -self._player
+            # 4.AI要走就AI走
+            self._ai_go_if_need()
+        else:
+            self.game.cancel_move()
+            self._player = -self._player
+        self.game_view.cancel_move(self.game.chess_board)
 
     def _ai_go_if_need(self):
         if self._is_ai_go():

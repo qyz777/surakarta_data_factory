@@ -121,6 +121,7 @@ class Game(object):
             return
         self._camp = -self._camp
         last_game_info = self._game_info_list.pop()
+        self._board_record_list.pop()
         to_chess = last_game_info["from"]
         from_chess = last_game_info["to"]
 

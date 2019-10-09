@@ -21,6 +21,7 @@ class GameView(QWidget):
         self.game_begin_callback = None
         self.change_mode_callback = None
         self.gen_callback = None
+        self.back_callback = None
         self.targets = []
         self.chess_list = []
         self._player = -1
@@ -58,8 +59,15 @@ class GameView(QWidget):
         self.gen_button.setStyleSheet("QPushButton{border-radius: 10; background-color: white; color: black;}"
                                       "QPushButton:hover{background-color: lightgray}")
         self.gen_button.setText("生成棋谱")
-        self.gen_button.setGeometry(INTERVAL * 10, 100, 200, 25)
+        self.gen_button.setGeometry(INTERVAL * 10, 100, 90, 25)
         self.gen_button.clicked.connect(self._click_gen_button)
+        self.back_button = QPushButton(self)
+        self.back_button.setStyleSheet("QPushButton{border-radius: 10; background-color: white; color: black;}"
+                                       "QPushButton:hover{background-color: lightgray}")
+        self.back_button.setText("悔棋")
+        self.back_button.setGeometry(INTERVAL * 10 + 110, 100, 90, 25)
+        self.back_button.clicked.connect(self._click_back_button)
+
         self.red_time_label = QLabel(self)
         self.red_time_label.setText("00:00")
         self.red_time_label.setStyleSheet("color: red")
@@ -126,6 +134,30 @@ class GameView(QWidget):
         item = QListWidgetItem(text)
         self.list_widget.addItem(item)
 
+    def cancel_move(self, board):
+        self._player = -self._player
+        for btn in self.chess_list:
+            btn.hide()
+            sip.delete(btn)
+        self.chess_list = []
+        for i in range(0, len(board)):
+            for j in range(0, len(board)):
+                chess = board[i][j]
+                if chess.camp != 0:
+                    begin_x = INTERVAL * 2
+                    begin_y = INTERVAL * 2
+                    btn = ChessButton(self)
+                    btn.setup_view(True if chess.camp == -1 else False)
+                    btn.setGeometry(begin_x + INTERVAL * chess.y - CHESS_SIZE / 2,
+                                    begin_y + INTERVAL * chess.x - CHESS_SIZE / 2,
+                                    CHESS_SIZE,
+                                    CHESS_SIZE)
+                    btn.setText(str(chess.tag))
+                    btn.tag = chess.tag
+                    btn.clicked.connect(self._click_btn)
+                    btn.show()
+                    self.chess_list.append(btn)
+
     @pyqtSlot()
     def _click_gen_button(self):
         self.gen_callback()
@@ -188,6 +220,10 @@ class GameView(QWidget):
             self.red_time_label.setText(str_m + ":" + str_s)
         else:
             self.blue_time_label.setText(str_m + ":" + str_s)
+
+    @pyqtSlot()
+    def _click_back_button(self):
+        self.back_callback()
 
     def _setup_buttons(self):
         begin_x = INTERVAL * 2

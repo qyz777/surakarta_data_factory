@@ -5,14 +5,23 @@ from surakarta.chess import Chess
 from surakarta.game import Game
 import threading
 from numba import jit
+import uuid
+import copy
+
+THREAD_IDENTIFIER = ""
 
 
 class Core(object):
 
     def __init__(self):
         self.ai_camp = -1
-        self._is_use_tactics = True
+        self._is_use_tactics = False
         self.is_first = False
+
+    def terminal(self):
+        global THREAD_IDENTIFIER
+        THREAD_IDENTIFIER = uuid.uuid4()
+        self.thread.join(0)
 
     def playing(self, game_info: dict, callback):
         """
@@ -22,10 +31,14 @@ class Core(object):
         :param callback: 回调
         :return:
         """
-        thread = threading.Thread(target=self._playing, args=(game_info, callback))
-        thread.start()
+        global THREAD_IDENTIFIER
+        THREAD_IDENTIFIER = uuid.uuid4()
+        self.thread = threading.Thread(target=self._playing, args=(game_info, callback))
+        self.thread.start()
 
     def _playing(self, game_info: dict, callback):
+        global THREAD_IDENTIFIER
+        thread_id = copy.deepcopy(THREAD_IDENTIFIER)
         step_num = int(game_info["step_num"] / 2)
         if self._is_use_tactics:
             if self.is_first and step_num < 3:
@@ -41,7 +54,8 @@ class Core(object):
         config = self._get_search_config()
         search = build(game_info, self.ai_camp, config)
         move = search.start()
-        callback(move)
+        if thread_id == THREAD_IDENTIFIER:
+            callback(move)
 
     @staticmethod
     def _setup_chess_from_row(row: tuple, board: [[Chess]]) -> dict:
