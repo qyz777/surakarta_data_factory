@@ -113,7 +113,7 @@ class GameController:
         date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         begin_board = "!BBBBBB\n!BBBBBB\n!000000\n!000000\n!RRRRRR\n!RRRRRR\n"
         place = "北京"
-        with open("info.txt", "a") as file:
+        with open("info-{0}.txt".format(date), "a", encoding='utf-8') as file:
             file.write("#" + date + "|" + place + "\n")
             file.write(begin_board)
             info_list = self.game.record_info_list
@@ -133,6 +133,8 @@ class GameController:
         简单处理
         悔棋接入请在这个方法处理
         """
+        if self._step_num == 0:
+            return
         if self._is_ai_mode:
             # 1.终止本线程
             self._ai_core.terminal()
@@ -145,6 +147,7 @@ class GameController:
         else:
             self.game.cancel_move()
             self._player = -self._player
+        self._step_num -= 1
         self.game_view.cancel_move(self.game.chess_board)
 
     def _ai_go_if_need(self):

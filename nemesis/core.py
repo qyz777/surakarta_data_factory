@@ -15,7 +15,7 @@ class Core(object):
 
     def __init__(self):
         self.ai_camp = -1
-        self._is_use_tactics = False
+        self._is_use_tactics = True
         self.is_first = False
 
     def terminal(self):
